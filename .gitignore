@@ -17,3 +17,6 @@ Desktop.ini
 *.log
 *.war
 target/
+
+# --- Agent working notes (private context, not for the repo) ---
+AGENT_NOTES.md
