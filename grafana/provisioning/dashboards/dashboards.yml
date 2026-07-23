@@ -1,0 +1,19 @@
+# Dashboard provisioning provider.
+# Grafana scans the `path` below on startup (and every updateIntervalSeconds)
+# and loads every *.json dashboard it finds — dashboards-as-code.
+apiVersion: 1
+
+providers:
+  - name: default
+    orgId: 1
+    # Grafana folder where these dashboards appear in the UI.
+    folder: "00 Platform"
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    # Allow editing in the UI (changes are kept until the file is reloaded).
+    allowUiUpdates: true
+    options:
+      # Path INSIDE the container (mounted from ./grafana/dashboards).
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false

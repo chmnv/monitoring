@@ -1,0 +1,8 @@
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+
+# Start broad on purpose: expose JVM (java.lang:*) and WildFly (jboss.as:*)
+# MBeans so we can explore what is available. We will replace this with
+# targeted rules once we know which metrics we actually use in dashboards.
+rules:
+  - pattern: ".*"

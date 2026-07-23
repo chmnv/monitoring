@@ -1,0 +1,19 @@
+# --- OS junk ---
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# --- IDE / editors ---
+.vscode/
+.idea/
+*.swp
+
+# --- Secrets / local env (keep out of Git) ---
+.env
+*.env
+!*.example.env
+
+# --- Runtime / build artifacts ---
+*.log
+*.war
+target/

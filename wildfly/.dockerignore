@@ -1,0 +1,5 @@
+# Primary build context = monitoring/wildfly/
+# Only jmx/config.yml needs to enter the build; keep everything else out.
+Dockerfile
+.dockerignore
+**/*.md

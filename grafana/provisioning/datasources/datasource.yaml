@@ -1,0 +1,16 @@
+# Grafana datasource provisioning.
+# Loaded automatically on startup from /etc/grafana/provisioning/datasources,
+# so Prometheus is wired in with zero manual clicks in the UI.
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    uid: prometheus            # stable UID so future dashboards can reference it
+    access: proxy              # Grafana server calls Prometheus (not the browser)
+    url: http://prometheus:9090  # Docker service DNS on the shared network, not localhost
+    isDefault: true           # default datasource for new panels/queries
+    editable: false           # provisioned config is the source of truth, not the UI
+    jsonData:
+      httpMethod: POST         # recommended for Prometheus range/instant queries
+      timeInterval: 15s        # matches Prometheus global scrape_interval

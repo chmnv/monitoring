@@ -1,0 +1,121 @@
+# Local monitoring platform — Compose stack.
+# Current step: WildFly application + Prometheus only.
+# (Grafana, Loki, Promtail, cAdvisor, windows_exporter come in later steps.)
+
+name: monitoring
+
+services:
+  # ---------------------------------------------------------------------------
+  # WildFly 39 (JDK 21) running kitchensink.war + JMX Exporter agent (:9404).
+  # Built from ./wildfly using the SAME two-context setup as the manual build,
+  # so the project architecture is unchanged.
+  # ---------------------------------------------------------------------------
+  wildfly:
+    build:
+      context: ./wildfly
+      # Compose equivalent of `--build-context kitchensink=...`: supplies the
+      # local Quickstarts source as the named context the Dockerfile expects.
+      additional_contexts:
+        kitchensink: ../wildfly-39.0.0.Final-quickstarts/kitchensink
+      # Management user baked in at build time (see Dockerfile ARGs). Kept here so
+      # the credentials live in one place; move to an .env file when needed.
+      args:
+        MGMT_USER: admin
+        MGMT_PASSWORD: admin
+    image: monitoring-wildfly:1.0
+    container_name: wildfly
+    restart: unless-stopped
+    ports:
+      - "8080:8080"   # application
+      - "9404:9404"   # JMX Exporter (Prometheus scrape target)
+      - "9990:9990"   # WildFly management console / API
+    networks:
+      - monitoring
+    healthcheck:
+      # curl ships in the WildFly image; a 2xx from the deployed app means "ready".
+      test: ["CMD", "curl", "-f", "http://localhost:8080/kitchensink/"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s   # WildFly boot + deploy takes a while; don't fail early
+
+  # ---------------------------------------------------------------------------
+  # Prometheus — scrapes the JMX Exporter over the Docker network (not localhost).
+  # ---------------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:v3.5.0   # pinned LTS, official image, no :latest
+    container_name: prometheus
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=15d   # cap disk usage for a local stack
+      - --web.enable-lifecycle              # allows `POST /-/reload` on config change
+    volumes:
+      # Config mounted read-only so the container can never mutate it.
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      # Named volume keeps the TSDB across restarts / recreations.
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"   # Prometheus web UI / API
+    networks:
+      - monitoring
+    depends_on:
+      wildfly:
+        condition: service_healthy   # start scraping only once the target is up
+    healthcheck:
+      # wget ships in the Prometheus (busybox-based) image; /-/healthy is built in.
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ---------------------------------------------------------------------------
+  # Grafana — visualization UI. Prometheus is auto-provisioned as the default
+  # datasource; no manual setup needed. (Dashboards come in a later step.)
+  # ---------------------------------------------------------------------------
+  grafana:
+    image: grafana/grafana:11.6.1   # pinned, official image, no :latest
+    container_name: grafana
+    restart: unless-stopped
+    environment:
+      # Local admin credentials. Move to an .env / secret for real deployments.
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      # Anonymous sign-up disabled — login required.
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      # Provisioning mounted read-only: Grafana reads datasource + dashboard
+      # provider config on boot.
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      # Dashboard JSON files (dashboards-as-code), scanned by the file provider.
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      # Named volume persists Grafana's own DB (users, prefs) across recreations.
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3000:3000"   # Grafana web UI
+    networks:
+      - monitoring
+    depends_on:
+      prometheus:
+        condition: service_healthy   # datasource target must be up first
+    healthcheck:
+      # curl ships in the Grafana image; /api/health is Grafana's built-in probe.
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+# All services share one user-defined bridge network. On it, containers reach each
+# other by SERVICE NAME (e.g. Prometheus -> "wildfly:9404"), so nothing depends on
+# host ports or localhost.
+networks:
+  monitoring:
+    driver: bridge
+
+# Named volumes survive `down`/recreate; removed only with `docker compose down -v`.
+volumes:
+  prometheus-data:   # Prometheus time-series database
+  grafana-data:      # Grafana internal DB (users, preferences, dashboard state)

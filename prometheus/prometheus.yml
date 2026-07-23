@@ -1,0 +1,42 @@
+# Prometheus configuration for the local monitoring platform.
+# Scrapes are addressed by Docker service DNS names (NOT localhost), so this file
+# works unchanged regardless of host, and new targets are added by appending a
+# job below — no restructuring required.
+
+global:
+  scrape_interval: 15s          # how often to pull metrics from every target
+  scrape_timeout: 10s           # must be < scrape_interval; fail a scrape that hangs
+  evaluation_interval: 15s      # how often recording/alerting rules are evaluated
+  external_labels:
+    monitor: monitoring-local   # tags every series/alert with the source stack
+
+# Alerting / rule files are declared here later (Alertmanager step). Kept empty now.
+# rule_files: []
+
+scrape_configs:
+  # Prometheus scraping itself — cheap, and useful to confirm the server is healthy.
+  - job_name: prometheus
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # WildFly JVM + application metrics via the JMX Exporter java agent (:9404).
+  # "wildfly" is the Compose service name, resolved over the shared Docker network.
+  - job_name: wildfly-jmx
+    static_configs:
+      - targets: ["wildfly:9404"]
+        labels:
+          application: kitchensink
+
+  # ---------------------------------------------------------------------------
+  # Placeholder for the next scrape target (WildFly Management API / metrics
+  # endpoint on :9990, or a dedicated exporter). Uncomment & fill in when added —
+  # the rest of the config stays untouched.
+  # - job_name: wildfly-management
+  #   metrics_path: /metrics
+  #   scheme: http
+  #   basic_auth:
+  #     username: admin
+  #     password: admin
+  #   static_configs:
+  #     - targets: ["wildfly:9990"]
+  # ---------------------------------------------------------------------------
