@@ -866,7 +866,15 @@
   "preload": false,
   "refresh": "30s",
   "schemaVersion": 41,
-  "tags": [],
+  "tags": [
+    "platform",
+    "overview",
+    "sre",
+    "availability",
+    "jvm",
+    "prometheus",
+    "grafana"
+  ],
   "templating": {
     "list": []
   },
@@ -878,5 +886,5 @@
   "timezone": "browser",
   "title": "Platform Overview",
   "uid": "afsypu2byt8u8b",
-  "version": 27
+  "version": 28
 }

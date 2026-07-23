@@ -462,12 +462,12 @@
   "preload": false,
   "refresh": "30s",
   "schemaVersion": 41,
-  "tags": ["infra", "windows"],
+  "tags": ["infra", "windows", "host", "node", "cpu", "memory", "disk", "network", "sre"],
   "templating": { "list": [] },
   "time": { "from": "now-1h", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
   "title": "Windows Host",
   "uid": "windows-host",
-  "version": 1
+  "version": 2
 }
