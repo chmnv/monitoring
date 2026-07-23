@@ -60,6 +60,10 @@ services:
       - "9090:9090"   # Prometheus web UI / API
     networks:
       - monitoring
+    # Lets Prometheus reach services running on the Windows host (windows_exporter
+    # on :9182) via the hostname host.docker.internal.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       wildfly:
         condition: service_healthy   # start scraping only once the target is up
@@ -107,6 +111,11 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+
+# Host-level metrics come from windows_exporter, which runs natively on the
+# Windows host (NOT in Docker) and is scraped by Prometheus via
+# host.docker.internal:9182 (see prometheus.yml). cAdvisor was dropped: on
+# Docker Desktop / WSL2 it cannot resolve per-container names/labels.
 
 # All services share one user-defined bridge network. On it, containers reach each
 # other by SERVICE NAME (e.g. Prometheus -> "wildfly:9404"), so nothing depends on

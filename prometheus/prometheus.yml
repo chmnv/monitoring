@@ -27,6 +27,12 @@ scrape_configs:
         labels:
           application: kitchensink
 
+  # Windows host metrics (CPU/RAM/disk/network) from windows_exporter, which runs
+  # natively on the host. Reached from inside the container via host.docker.internal.
+  - job_name: windows
+    static_configs:
+      - targets: ["host.docker.internal:9182"]
+
   # ---------------------------------------------------------------------------
   # Placeholder for the next scrape target (WildFly Management API / metrics
   # endpoint on :9990, or a dedicated exporter). Uncomment & fill in when added —
