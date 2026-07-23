@@ -51,6 +51,7 @@ services:
       - --storage.tsdb.path=/prometheus
       - --storage.tsdb.retention.time=15d   # cap disk usage for a local stack
       - --web.enable-lifecycle              # allows `POST /-/reload` on config change
+      - --web.enable-admin-api              # allows TSDB admin ops (delete_series)
     volumes:
       # Config mounted read-only so the container can never mutate it.
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
