@@ -65,4 +65,6 @@ EXPOSE 8080 9990 9404
 #                            without it WildFly listens only on loopback inside the
 #                            container and the published port is refused.
 # MODULE_OPTS (JMX agent on :9404) is read by standalone.sh independently and is unaffected.
-CMD ["/opt/jboss/wildfly/bin/standalone.sh", "-b", "0.0.0.0", "-bmanagement", "0.0.0.0"]
+# -Dwildfly.statistics-enabled=true turns on subsystem statistics (Undertow requests,
+# datasource pools, transactions, EJB) so the native :9990/metrics counters are non-zero.
+CMD ["/opt/jboss/wildfly/bin/standalone.sh", "-b", "0.0.0.0", "-bmanagement", "0.0.0.0", "-Dwildfly.statistics-enabled=true"]

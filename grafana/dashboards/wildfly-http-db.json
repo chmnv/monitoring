@@ -1,0 +1,542 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "HTTP request throughput (all listeners). The 'traffic' golden signal.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "text" } ] },
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "colorMode": "none", "graphMode": "area", "justifyMode": "auto", "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m]))", "legendFormat": "req/s", "range": true, "refId": "A" }
+      ],
+      "title": "Requests / sec",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Share of HTTP 500 responses. The 'errors' golden signal.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "decimals": 2,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "semi-dark-green" },
+            { "color": "semi-dark-yellow", "value": 1 },
+            { "color": "semi-dark-red", "value": 5 }
+          ]},
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "id": 2,
+      "options": {
+        "colorMode": "background_solid", "graphMode": "none", "justifyMode": "auto", "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "100 * sum(rate(wildfly_undertow_error_count_total{job=\"wildfly-management\"}[5m])) / clamp_min(sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])), 0.0001)", "legendFormat": "error %", "range": true, "refId": "A" }
+      ],
+      "title": "Error Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Average request processing time. The 'latency' golden signal.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "semi-dark-green" },
+            { "color": "semi-dark-yellow", "value": 0.25 },
+            { "color": "semi-dark-red", "value": 1 }
+          ]},
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+      "id": 3,
+      "options": {
+        "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "sum(rate(wildfly_undertow_processing_time_total_seconds{job=\"wildfly-management\"}[5m])) / clamp_min(sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])), 0.0001)", "legendFormat": "avg", "range": true, "refId": "A" }
+      ],
+      "title": "Avg Processing Time",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Currently active HTTP sessions.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "text" } ] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+      "id": 4,
+      "options": {
+        "colorMode": "none", "graphMode": "area", "justifyMode": "auto", "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "sum(wildfly_undertow_active_sessions{job=\"wildfly-management\"})", "legendFormat": "sessions", "range": true, "refId": "A" }
+      ],
+      "title": "Active Sessions",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Datasource connections currently in use.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "text" } ] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+      "id": 5,
+      "options": {
+        "colorMode": "none", "graphMode": "area", "justifyMode": "auto", "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "sum(wildfly_datasources_pool_in_use_count{job=\"wildfly-management\"})", "legendFormat": "in use", "range": true, "refId": "A" }
+      ],
+      "title": "DB Conn In Use",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Times a client had to wait for a DB connection (pool exhaustion signal).",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "semi-dark-green" },
+            { "color": "semi-dark-red", "value": 1 }
+          ]},
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+      "id": 6,
+      "options": {
+        "colorMode": "background_solid", "graphMode": "none", "justifyMode": "auto", "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "sum(wildfly_datasources_pool_wait_count{job=\"wildfly-management\"})", "legendFormat": "wait", "range": true, "refId": "A" }
+      ],
+      "title": "DB Wait Count",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "HTTP request rate per listener.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 15,
+            "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "id": 7,
+      "options": {
+        "legend": { "calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])", "legendFormat": "{{http_listener}}{{https_listener}}", "range": true, "refId": "A" }
+      ],
+      "title": "Request Rate by Listener",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "HTTP 500 error rate per listener.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 15,
+            "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false, "lineInterpolation": "linear", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "id": 8,
+      "options": {
+        "legend": { "calcs": ["lastNotNull"], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "rate(wildfly_undertow_error_count_total{job=\"wildfly-management\"}[5m])", "legendFormat": "{{http_listener}}{{https_listener}} 5xx", "range": true, "refId": "A" }
+      ],
+      "title": "Error Rate by Listener",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Average (derived) and peak request processing time.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10,
+            "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "id": 9,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "sum(rate(wildfly_undertow_processing_time_total_seconds{job=\"wildfly-management\"}[5m])) / clamp_min(sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])), 0.0001)", "legendFormat": "avg processing time", "range": true, "refId": "A" },
+        { "editorMode": "code", "expr": "max(wildfly_undertow_max_processing_time_seconds{job=\"wildfly-management\"})", "legendFormat": "max processing time", "range": true, "refId": "B" }
+      ],
+      "title": "Processing Time (avg vs max)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Inbound/outbound HTTP traffic.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10,
+            "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 1, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "Bps"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "id": 10,
+      "options": {
+        "legend": { "calcs": ["lastNotNull"], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "sum(rate(wildfly_undertow_bytes_received_total_bytes{job=\"wildfly-management\"}[5m]))", "legendFormat": "received", "range": true, "refId": "A" },
+        { "editorMode": "code", "expr": "sum(rate(wildfly_undertow_bytes_sent_total_bytes{job=\"wildfly-management\"}[5m]))", "legendFormat": "sent", "range": true, "refId": "B" }
+      ],
+      "title": "HTTP Throughput",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Active sessions per deployment over time.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 20,
+            "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "id": 11,
+      "options": {
+        "legend": { "calcs": ["lastNotNull", "max"], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "wildfly_undertow_active_sessions{job=\"wildfly-management\"}", "legendFormat": "{{deployment}}", "range": true, "refId": "A" }
+      ],
+      "title": "Active Sessions Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Session lifecycle rates: created, expired, rejected.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10,
+            "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false, "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 20 },
+      "id": 12,
+      "options": {
+        "legend": { "calcs": ["lastNotNull"], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "sum(rate(wildfly_undertow_sessions_created_total{job=\"wildfly-management\"}[5m]))", "legendFormat": "created", "range": true, "refId": "A" },
+        { "editorMode": "code", "expr": "sum(rate(wildfly_undertow_expired_sessions_total{job=\"wildfly-management\"}[5m]))", "legendFormat": "expired", "range": true, "refId": "B" },
+        { "editorMode": "code", "expr": "sum(rate(wildfly_undertow_rejected_sessions_total{job=\"wildfly-management\"}[5m]))", "legendFormat": "rejected", "range": true, "refId": "C" }
+      ],
+      "title": "Session Churn",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Datasource pool composition over time (in use / available / idle) per data source.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 15,
+            "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 16, "x": 0, "y": 28 },
+      "id": 13,
+      "options": {
+        "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "wildfly_datasources_pool_in_use_count{job=\"wildfly-management\"}", "legendFormat": "{{data_source}} in use", "range": true, "refId": "A" },
+        { "editorMode": "code", "expr": "wildfly_datasources_pool_available_count{job=\"wildfly-management\"}", "legendFormat": "{{data_source}} available", "range": true, "refId": "B" },
+        { "editorMode": "code", "expr": "wildfly_datasources_pool_idle_count{job=\"wildfly-management\"}", "legendFormat": "{{data_source}} idle", "range": true, "refId": "C" }
+      ],
+      "title": "Datasource Pool Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Pool utilization = in use / (in use + available), per data source.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "decimals": 1,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "semi-dark-green" },
+            { "color": "semi-dark-yellow", "value": 70 },
+            { "color": "semi-dark-red", "value": 90 }
+          ]},
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 28 },
+      "id": 14,
+      "options": {
+        "displayMode": "basic",
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": false },
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showUnfilled": true,
+        "valueMode": "color"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "exemplar": false, "expr": "100 * wildfly_datasources_pool_in_use_count{job=\"wildfly-management\"} / clamp_min(wildfly_datasources_pool_in_use_count{job=\"wildfly-management\"} + wildfly_datasources_pool_available_count{job=\"wildfly-management\"}, 1)", "instant": true, "legendFormat": "{{data_source}}", "range": false, "refId": "A" }
+      ],
+      "title": "Pool Utilization",
+      "type": "bargauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Connection wait events and average blocking time (pool contention).",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10,
+            "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false, "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "auto", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "avg blocking time (ms)" }, "properties": [ { "id": "unit", "value": "ms" }, { "id": "custom.axisPlacement", "value": "right" } ] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 36 },
+      "id": 15,
+      "options": {
+        "legend": { "calcs": ["lastNotNull"], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "rate(wildfly_datasources_pool_wait_count{job=\"wildfly-management\"}[5m])", "legendFormat": "{{data_source}} wait/s", "range": true, "refId": "A" },
+        { "editorMode": "code", "expr": "wildfly_datasources_pool_average_blocking_time{job=\"wildfly-management\"}", "legendFormat": "avg blocking time (ms)", "range": true, "refId": "B" }
+      ],
+      "title": "Connection Wait & Blocking",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Physical connection churn: created vs destroyed per second.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10,
+            "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false, "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 36 },
+      "id": 16,
+      "options": {
+        "legend": { "calcs": ["lastNotNull"], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "rate(wildfly_datasources_pool_created_count{job=\"wildfly-management\"}[5m])", "legendFormat": "{{data_source}} created/s", "range": true, "refId": "A" },
+        { "editorMode": "code", "expr": "rate(wildfly_datasources_pool_destroyed_count{job=\"wildfly-management\"}[5m])", "legendFormat": "{{data_source}} destroyed/s", "range": true, "refId": "B" }
+      ],
+      "title": "Connection Churn",
+      "type": "timeseries"
+    }
+  ],
+  "preload": false,
+  "refresh": "30s",
+  "schemaVersion": 41,
+  "tags": ["wildfly", "http", "undertow", "datasources", "requests", "sre", "prometheus"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "WildFly HTTP & Datasources",
+  "uid": "wildfly-http-db",
+  "version": 1
+}

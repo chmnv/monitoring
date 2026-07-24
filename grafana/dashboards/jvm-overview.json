@@ -1,0 +1,545 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Heap memory used as a share of max heap. The core JVM saturation signal.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "decimals": 1,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "semi-dark-green" },
+            { "color": "semi-dark-yellow", "value": 75 },
+            { "color": "semi-dark-red", "value": 90 }
+          ]},
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "100 * base_memory_usedHeap_bytes{job=\"wildfly-management\"} / base_memory_maxHeap_bytes{job=\"wildfly-management\"}", "legendFormat": "Heap used", "range": true, "refId": "A" }
+      ],
+      "title": "Heap Used",
+      "type": "gauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Process CPU load of the JVM (recent).",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "decimals": 1,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "semi-dark-green" },
+            { "color": "semi-dark-yellow", "value": 70 },
+            { "color": "semi-dark-red", "value": 90 }
+          ]},
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "id": 2,
+      "options": {
+        "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "base_cpu_processCpuLoad{job=\"wildfly-management\"} * 100", "legendFormat": "CPU load", "range": true, "refId": "A" }
+      ],
+      "title": "Process CPU Load",
+      "type": "gauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Live threads currently in the JVM.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "text" } ] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+      "id": 3,
+      "options": {
+        "colorMode": "none", "graphMode": "area", "justifyMode": "auto", "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "base_thread_count{job=\"wildfly-management\"}", "legendFormat": "Threads", "range": true, "refId": "A" }
+      ],
+      "title": "Live Threads",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Classes currently loaded in the JVM.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "text" } ] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
+      "id": 4,
+      "options": {
+        "colorMode": "none", "graphMode": "area", "justifyMode": "auto", "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "base_classloader_loadedClasses_count{job=\"wildfly-management\"}", "legendFormat": "Loaded classes", "range": true, "refId": "A" }
+      ],
+      "title": "Loaded Classes",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Share of wall-clock time spent in GC (all collectors). High = GC pressure.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "decimals": 2,
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "semi-dark-green" },
+            { "color": "semi-dark-yellow", "value": 5 },
+            { "color": "semi-dark-red", "value": 10 }
+          ]},
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+      "id": 5,
+      "options": {
+        "colorMode": "background_solid", "graphMode": "area", "justifyMode": "auto", "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "sum(rate(base_gc_time_total_seconds{job=\"wildfly-management\"}[5m])) * 100", "legendFormat": "GC overhead", "range": true, "refId": "A" }
+      ],
+      "title": "GC Overhead",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Time since the JVM started.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "semi-dark-red" },
+            { "color": "semi-dark-green", "value": 600 }
+          ]},
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+      "id": 6,
+      "options": {
+        "colorMode": "value", "graphMode": "none", "justifyMode": "auto", "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "base_jvm_uptime_seconds{job=\"wildfly-management\"}", "legendFormat": "Uptime", "range": true, "refId": "A" }
+      ],
+      "title": "JVM Uptime",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Heap memory used vs committed vs max over time. Sawtooth = healthy GC; rising floor = possible leak.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10,
+            "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "id": 7,
+      "options": {
+        "legend": { "calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "base_memory_usedHeap_bytes{job=\"wildfly-management\"}", "legendFormat": "Heap used", "range": true, "refId": "A" },
+        { "editorMode": "code", "expr": "base_memory_committedHeap_bytes{job=\"wildfly-management\"}", "legendFormat": "Heap committed", "range": true, "refId": "B" },
+        { "editorMode": "code", "expr": "base_memory_maxHeap_bytes{job=\"wildfly-management\"}", "legendFormat": "Heap max", "range": true, "refId": "C" }
+      ],
+      "title": "Heap Memory",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Non-heap memory used vs committed (Metaspace, code cache, etc.).",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10,
+            "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "id": 8,
+      "options": {
+        "legend": { "calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "base_memory_usedNonHeap_bytes{job=\"wildfly-management\"}", "legendFormat": "Non-heap used", "range": true, "refId": "A" },
+        { "editorMode": "code", "expr": "base_memory_committedNonHeap_bytes{job=\"wildfly-management\"}", "legendFormat": "Non-heap committed", "range": true, "refId": "B" }
+      ],
+      "title": "Non-Heap Memory",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Garbage collection frequency per collector.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10,
+            "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 1, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 12 },
+      "id": 9,
+      "options": {
+        "legend": { "calcs": ["lastNotNull"], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "rate(base_gc_total{job=\"wildfly-management\"}[5m])", "legendFormat": "{{name}}", "range": true, "refId": "A" }
+      ],
+      "title": "GC Collection Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Time spent in GC per collector (seconds of GC per second).",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10,
+            "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 1, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 12 },
+      "id": 10,
+      "options": {
+        "legend": { "calcs": ["lastNotNull"], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "rate(base_gc_time_total_seconds{job=\"wildfly-management\"}[5m])", "legendFormat": "{{name}}", "range": true, "refId": "A" }
+      ],
+      "title": "GC Time Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Thread counts: current, daemon, and peak since start.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10,
+            "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 12 },
+      "id": 11,
+      "options": {
+        "legend": { "calcs": ["lastNotNull", "max"], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "base_thread_count{job=\"wildfly-management\"}", "legendFormat": "current", "range": true, "refId": "A" },
+        { "editorMode": "code", "expr": "base_thread_daemon_count{job=\"wildfly-management\"}", "legendFormat": "daemon", "range": true, "refId": "B" },
+        { "editorMode": "code", "expr": "base_thread_max_count{job=\"wildfly-management\"}", "legendFormat": "peak", "range": true, "refId": "C" }
+      ],
+      "title": "Threads",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Current usage of each JVM memory pool (Eden, Survivor, Old Gen, Metaspace, code heaps).",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "continuous-GrYlRd" },
+          "decimals": 0,
+          "mappings": [],
+          "min": 0,
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 20 },
+      "id": 12,
+      "options": {
+        "displayMode": "gradient",
+        "legend": { "calcs": [], "displayMode": "list", "placement": "bottom", "showLegend": false },
+        "namePlacement": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showUnfilled": true,
+        "valueMode": "color"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "exemplar": false, "expr": "vendor_memoryPool_usage_bytes{job=\"wildfly-management\"}", "instant": true, "legendFormat": "{{name}}", "range": false, "refId": "A" }
+      ],
+      "title": "Memory Pools Usage",
+      "type": "bargauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Class loading activity: currently loaded, and load/unload rates (rising load with ~0 unload can signal a classloader leak).",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10,
+            "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 1, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "loaded (current)" }, "properties": [ { "id": "custom.axisPlacement", "value": "right" } ] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 20 },
+      "id": 13,
+      "options": {
+        "legend": { "calcs": ["lastNotNull"], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "base_classloader_loadedClasses_count{job=\"wildfly-management\"}", "legendFormat": "loaded (current)", "range": true, "refId": "A" },
+        { "editorMode": "code", "expr": "rate(base_classloader_loadedClasses_total{job=\"wildfly-management\"}[5m])", "legendFormat": "load rate", "range": true, "refId": "B" },
+        { "editorMode": "code", "expr": "rate(base_classloader_unloadedClasses_total{job=\"wildfly-management\"}[5m])", "legendFormat": "unload rate", "range": true, "refId": "C" }
+      ],
+      "title": "Class Loading",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "JVM process CPU load (%) and host system load average.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10,
+            "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 1, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "short"
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "process CPU %" }, "properties": [ { "id": "unit", "value": "percent" }, { "id": "custom.axisPlacement", "value": "right" } ] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 20 },
+      "id": 14,
+      "options": {
+        "legend": { "calcs": ["lastNotNull", "max"], "displayMode": "list", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "base_cpu_processCpuLoad{job=\"wildfly-management\"} * 100", "legendFormat": "process CPU %", "range": true, "refId": "A" },
+        { "editorMode": "code", "expr": "base_cpu_systemLoadAverage{job=\"wildfly-management\"}", "legendFormat": "system load avg", "range": true, "refId": "B" }
+      ],
+      "title": "CPU Load",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Live generational view: each JVM memory pool stacked over time (Eden/Survivor/Old Gen/Metaspace/code heaps). Shows how memory moves between generations as GC runs.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 40,
+            "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 1, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "normal" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "decbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 28 },
+      "id": 15,
+      "options": {
+        "legend": { "calcs": ["lastNotNull"], "displayMode": "table", "placement": "right", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "vendor_memoryPool_usage_bytes{job=\"wildfly-management\"}", "legendFormat": "{{name}}", "range": true, "refId": "A" }
+      ],
+      "title": "Memory Pools Over Time",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Average GC pause per collection = time spent / number of collections, per collector. Rising values mean each GC is getting more expensive (latency risk).",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10,
+            "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "auto", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 28 },
+      "id": 16,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "rate(base_gc_time_total_seconds{job=\"wildfly-management\"}[5m]) / clamp_min(rate(base_gc_total{job=\"wildfly-management\"}[5m]), 0.0001)", "legendFormat": "{{name}}", "range": true, "refId": "A" }
+      ],
+      "title": "Avg GC Pause per Collection",
+      "type": "timeseries"
+    }
+  ],
+  "preload": false,
+  "refresh": "30s",
+  "schemaVersion": 41,
+  "tags": ["jvm", "wildfly", "overview", "sre", "memory", "gc", "threads", "classloading", "cpu", "heap", "prometheus"],
+  "templating": { "list": [] },
+  "time": { "from": "now-1h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "JVM Overview",
+  "uid": "jvm-overview",
+  "version": 3
+}

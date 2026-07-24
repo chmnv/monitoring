@@ -457,17 +457,53 @@
       ],
       "title": "Network Errors & Discards",
       "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Per-core CPU utilization distribution over time. Each core's busy % is bucketed; color shows how many cores sit in each utilization band — instantly reveals core imbalance or a single saturated core.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "scaleDistribution": { "type": "linear" }
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 26 },
+      "id": 14,
+      "options": {
+        "calculate": true,
+        "calculation": { "yBuckets": { "mode": "size", "value": "10" } },
+        "cellGap": 1,
+        "color": {
+          "exponent": 0.5, "fill": "dark-orange", "mode": "scheme",
+          "reverse": false, "scale": "exponential", "scheme": "Turbo", "steps": 64
+        },
+        "exemplars": { "color": "rgba(255,0,255,0.7)" },
+        "filterValues": { "le": 1e-9 },
+        "legend": { "show": true },
+        "rowsFrame": { "layout": "auto" },
+        "tooltip": { "mode": "single", "showColorScale": true, "yHistogram": false },
+        "yAxis": { "axisPlacement": "left", "reverse": false, "unit": "percent", "min": 0, "max": 100 }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "100 - rate(windows_cpu_time_total{mode=\"idle\"}[5m]) * 100", "legendFormat": "{{core}}", "range": true, "refId": "A" }
+      ],
+      "title": "Per-core CPU Utilization (heatmap)",
+      "type": "heatmap"
     }
   ],
   "preload": false,
   "refresh": "30s",
   "schemaVersion": 41,
-  "tags": ["infra", "windows", "host", "node", "cpu", "memory", "disk", "network", "sre"],
+  "tags": ["infra", "windows", "host", "node", "cpu", "memory", "disk", "network", "sre", "heatmap", "hardware", "os", "prometheus"],
   "templating": { "list": [] },
   "time": { "from": "now-1h", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
   "title": "Windows Host",
   "uid": "windows-host",
-  "version": 2
+  "version": 4
 }
