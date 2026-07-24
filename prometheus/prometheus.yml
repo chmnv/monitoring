@@ -33,16 +33,21 @@ scrape_configs:
     static_configs:
       - targets: ["host.docker.internal:9182"]
 
-  # ---------------------------------------------------------------------------
-  # Placeholder for the next scrape target (WildFly Management API / metrics
-  # endpoint on :9990, or a dedicated exporter). Uncomment & fill in when added —
-  # the rest of the config stays untouched.
-  # - job_name: wildfly-management
-  #   metrics_path: /metrics
-  #   scheme: http
-  #   basic_auth:
-  #     username: admin
-  #     password: admin
-  #   static_configs:
-  #     - targets: ["wildfly:9990"]
-  # ---------------------------------------------------------------------------
+  # WildFly native Prometheus metrics (MicroProfile / metrics subsystem) on the
+  # management interface. Runs ALONGSIDE wildfly-jmx (mentor: both are OK).
+  # Names differ from JMX Exporter (base_*/vendor_*/application_* vs jvm_*).
+  - job_name: wildfly-management
+    metrics_path: /metrics
+    scheme: http
+    # WildFly emits Prometheus text without a modern Content-Type; Prometheus 3
+    # rejects that unless a fallback protocol is set.
+    fallback_scrape_protocol: PrometheusText0.0.4
+    # Endpoint answered without auth in our stack; keep basic_auth ready if
+    # management security is tightened later.
+    basic_auth:
+      username: admin
+      password: admin
+    static_configs:
+      - targets: ["wildfly:9990"]
+        labels:
+          application: kitchensink
