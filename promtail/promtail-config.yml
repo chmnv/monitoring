@@ -71,10 +71,13 @@ scrape_configs:
           value: "true"
           drop_counter_reason: audit_boot_op
       # Promote the useful, low-cardinality fields to labels for filtering/graphing.
+      # operation is promoted so "Top Management Operations" can aggregate without
+      # re-parsing JSON (the log line itself is rewritten to plain text below).
       - labels:
           user:
           access:
           success:
+          operation:
       # Render a compact, human-readable line instead of raw JSON, e.g.
       #   "admin · NATIVE · read-attribute · OK"  or  "admin · HTTP · write-attribute · FAILED · WRITE"
       - template:

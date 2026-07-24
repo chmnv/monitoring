@@ -51,3 +51,13 @@ scrape_configs:
       - targets: ["wildfly:9990"]
         labels:
           application: kitchensink
+
+  # Application / business metrics from kitchensink itself (Counter/Gauge/Histogram
+  # registered in AppMetrics, exposed by MetricsServlet). Separate from WildFly
+  # infrastructure metrics so the Application dashboard answers business questions.
+  - job_name: kitchensink-app
+    metrics_path: /kitchensink/metrics
+    static_configs:
+      - targets: ["wildfly:8080"]
+        labels:
+          application: kitchensink

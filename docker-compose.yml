@@ -16,7 +16,8 @@ services:
       # Compose equivalent of `--build-context kitchensink=...`: supplies the
       # local Quickstarts source as the named context the Dockerfile expects.
       additional_contexts:
-        kitchensink: ../wildfly-39.0.0.Final-quickstarts/kitchensink
+        # App source lives in-repo so business-metric changes are versioned with the stack.
+        kitchensink: ./kitchensink
       # Management user baked in at build time (see Dockerfile ARGs). Kept here so
       # the credentials live in one place; move to an .env file when needed.
       args:
