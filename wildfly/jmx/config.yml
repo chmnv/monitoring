@@ -1,8 +1,19 @@
+# JMX Exporter config for WildFly (javaagent on :9404).
+#
+# Goal: keep the stable JVM/process metrics our dashboards and alerts use,
+# without scraping WildFly/JBoss MBeans. Those MBeans produce high-cardinality
+# series with dynamic IDs (e.g. jboss_remoting_endpoint_remoting_<uuid>_*) and
+# duplicate what we already get cleanly from :9990/metrics (job wildfly-management).
+#
+# The javaagent always registers Prometheus DefaultExports (jvm_*, process_*),
+# independent of the rules below. includeObjectNames points at a non-existent
+# MBean so the JmxCollector emits no extra attribute series.
+
 lowercaseOutputName: true
 lowercaseOutputLabelNames: true
 
-# Start broad on purpose: expose JVM (java.lang:*) and WildFly (jboss.as:*)
-# MBeans so we can explore what is available. We will replace this with
-# targeted rules once we know which metrics we actually use in dashboards.
+includeObjectNames:
+  - "monitoring.local:type=Disabled"
+
 rules:
   - pattern: ".*"

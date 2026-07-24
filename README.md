@@ -160,9 +160,12 @@ Multi-stage Dockerfile + BuildKit named context `kitchensink` → `./kitchensink
 1. **Builder (JDK 21):** `mvn package` builds `kitchensink.war`; JMX agent jar is
    downloaded at a pinned version and SHA-256 verified.
 2. **Runtime (WildFly 39):** WAR + agent + `jmx/config.yml`. Agent is attached via
-   `MODULE_OPTS` (after JBoss LogManager is installed). Management user, audit log
-   (compact JSON into `standalone/log`), and `-Dwildfly.statistics-enabled=true` are
-   configured at build/start so Undertow/datasource metrics and audit shipping work.
+   `MODULE_OPTS` (after JBoss LogManager is installed). The JMX config keeps
+   DefaultExports only (`jvm_*` / `process_*`); WildFly MBeans are scraped via
+   `:9990/metrics` instead (avoids high-cardinality `jboss_remoting_*` IDs).
+   Management user, audit log (compact JSON into `standalone/log`), and
+   `-Dwildfly.statistics-enabled=true` are configured at build/start so
+   Undertow/datasource metrics and audit shipping work.
 
 ```powershell
 # Rebuild only WildFly after app changes:
@@ -185,8 +188,9 @@ docker start wildfly
 - [x] WildFly image (multi-stage, JMX Exporter, management, audit log)
 - [x] kitchensink vendored in-repo + business metrics endpoint
 - [x] Prometheus (JMX + native `:9990` + kitchensink-app + windows)
-- [x] Grafana datasources + dashboards-as-code
+- [x] Grafana datasources + dashboards-as-code (01–09)
 - [x] Loki + Promtail (server.log + audit-log)
 - [x] Email alerts (Gmail SMTP, rules as code)
-- [ ] H2 query timing (deeper DB latency)
+- [x] H2 / Database & Query Timing + System Health & SLA
+- [x] JMX cardinality tighten (DefaultExports only)
 - [ ] Optional report generation / presentation polish
