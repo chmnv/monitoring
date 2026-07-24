@@ -334,6 +334,9 @@
           "refId": "A"
         }
       ],
+      "links": [
+        { "title": "Drill down: JVM Overview", "url": "/d/jvm-overview?${__url_time_range}", "targetBlank": false }
+      ],
       "title": "WildFly Uptime",
       "type": "stat"
     },
@@ -403,6 +406,9 @@
           "range": true,
           "refId": "A"
         }
+      ],
+      "links": [
+        { "title": "Drill down: JVM Overview", "url": "/d/jvm-overview?${__url_time_range}", "targetBlank": false }
       ],
       "title": "JVM Heap Usage",
       "type": "stat"
@@ -752,6 +758,9 @@
           "refId": "D"
         }
       ],
+      "links": [
+        { "title": "Drill down: JVM Overview", "url": "/d/jvm-overview?${__url_time_range}", "targetBlank": false }
+      ],
       "title": "JVM Memory — Heap & Non-Heap",
       "type": "timeseries"
     },
@@ -833,6 +842,9 @@
           "refId": "A"
         }
       ],
+      "links": [
+        { "title": "Drill down: JVM Overview", "url": "/d/jvm-overview?${__url_time_range}", "targetBlank": false }
+      ],
       "title": "JVM Memory Pools Pressure",
       "type": "bargauge"
     },
@@ -866,6 +878,9 @@
       "targets": [
         { "editorMode": "code", "expr": "100 - (avg(rate(windows_cpu_time_total{mode=\"idle\"}[5m])) * 100)", "legendFormat": "Host CPU", "range": true, "refId": "A" },
         { "editorMode": "code", "expr": "rate(process_cpu_seconds_total{job=\"wildfly-jmx\"}[5m]) * 100", "legendFormat": "WildFly JVM", "range": true, "refId": "B" }
+      ],
+      "links": [
+        { "title": "Drill down: Windows Host", "url": "/d/windows-host?${__url_time_range}", "targetBlank": false }
       ],
       "title": "CPU — Host vs WildFly",
       "type": "timeseries"
@@ -901,6 +916,10 @@
       "targets": [
         { "editorMode": "code", "expr": "(1 - windows_memory_available_bytes / windows_memory_physical_total_bytes) * 100", "legendFormat": "Host RAM", "range": true, "refId": "A" },
         { "editorMode": "code", "expr": "100 * sum(jvm_memory_used_bytes{area=\"heap\",job=\"wildfly-jmx\"}) / sum(jvm_memory_max_bytes{area=\"heap\",job=\"wildfly-jmx\"})", "legendFormat": "WildFly Heap", "range": true, "refId": "B" }
+      ],
+      "links": [
+        { "title": "Drill down: JVM Overview", "url": "/d/jvm-overview?${__url_time_range}", "targetBlank": false },
+        { "title": "Drill down: Windows Host", "url": "/d/windows-host?${__url_time_range}", "targetBlank": false }
       ],
       "title": "Memory — Host vs WildFly Heap",
       "type": "timeseries"
@@ -938,6 +957,9 @@
         { "datasource": { "type": "prometheus", "uid": "prometheus" }, "editorMode": "code", "expr": "sum(rate(wildfly_undertow_error_count_total{job=\"wildfly-management\"}[5m]))", "legendFormat": "HTTP 5xx/s", "range": true, "refId": "A" },
         { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "sum(rate({job=\"wildfly\", level=\"ERROR\"}[5m]))", "legendFormat": "Log errors/s", "queryType": "range", "refId": "B" }
       ],
+      "links": [
+        { "title": "Drill down: WildFly Logs", "url": "/d/wildfly-logs?${__url_time_range}", "targetBlank": false }
+      ],
       "title": "Platform Error Rate",
       "type": "timeseries"
     },
@@ -971,6 +993,9 @@
       "targets": [
         { "datasource": { "type": "prometheus", "uid": "prometheus" }, "editorMode": "code", "expr": "sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m]))", "legendFormat": "HTTP req/s", "range": true, "refId": "A" },
         { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "sum(rate({job=\"wildfly\"}[5m]))", "legendFormat": "Log lines/s", "queryType": "range", "refId": "B" }
+      ],
+      "links": [
+        { "title": "Drill down: WildFly HTTP & Datasources", "url": "/d/wildfly-http-db?${__url_time_range}", "targetBlank": false }
       ],
       "title": "Platform Traffic",
       "type": "timeseries"
@@ -1008,6 +1033,9 @@
       "pluginVersion": "11.6.1",
       "targets": [
         { "editorMode": "code", "exemplar": false, "expr": "100 * (1 - windows_logical_disk_free_bytes{volume=~\"[A-Z]:\"} / windows_logical_disk_size_bytes{volume=~\"[A-Z]:\"})", "instant": true, "legendFormat": "{{volume}}", "range": false, "refId": "A" }
+      ],
+      "links": [
+        { "title": "Drill down: Windows Host", "url": "/d/windows-host?${__url_time_range}", "targetBlank": false }
       ],
       "title": "Disk by Volume",
       "type": "bargauge"
@@ -1062,5 +1090,5 @@
   "timezone": "browser",
   "title": "Platform Overview",
   "uid": "afsypu2byt8u8b",
-  "version": 29
+  "version": 30
 }
