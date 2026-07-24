@@ -126,7 +126,7 @@
       },
       "pluginVersion": "11.6.1",
       "targets": [
-        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "sum(count_over_time({job=\"wildfly-audit\"} |= `\"r/o\" : false` [$__range])) or vector(0)", "queryType": "instant", "refId": "A" }
+        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "sum(count_over_time({job=\"wildfly-audit\"} |= `WRITE` [$__range])) or vector(0)", "queryType": "instant", "refId": "A" }
       ],
       "title": "Write Operations",
       "type": "stat"

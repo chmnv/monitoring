@@ -454,9 +454,9 @@
       },
       "pluginVersion": "11.6.1",
       "targets": [
-        { "editorMode": "code", "exemplar": false, "expr": "100 * wildfly_datasources_pool_in_use_count{job=\"wildfly-management\"} / clamp_min(wildfly_datasources_pool_in_use_count{job=\"wildfly-management\"} + wildfly_datasources_pool_available_count{job=\"wildfly-management\"}, 1)", "instant": true, "legendFormat": "{{data_source}}", "range": false, "refId": "A" }
+        { "editorMode": "code", "exemplar": false, "expr": "100 * wildfly_datasources_pool_max_used_count{job=\"wildfly-management\"} / clamp_min(wildfly_datasources_pool_in_use_count{job=\"wildfly-management\"} + wildfly_datasources_pool_available_count{job=\"wildfly-management\"}, 1)", "instant": true, "legendFormat": "{{data_source}} peak", "range": false, "refId": "A" }
       ],
-      "title": "Pool Utilization",
+      "title": "Pool Peak Utilization",
       "type": "bargauge"
     },
     {

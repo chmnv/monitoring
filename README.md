@@ -58,6 +58,11 @@ monitoring/
 ├── wildfly/
 │   ├── Dockerfile                # multi-stage: Maven WAR + WildFly + JMX agent
 │   └── jmx/config.yml
+├── scripts/
+│   ├── demo-all.ps1              # drive ALL dashboards (traffic + mgmt/audit)
+│   ├── load-traffic.ps1          # HTTP + DB + business load (parallel workers)
+│   ├── mgmt-activity.ps1         # management read+write ops for Security & Audit
+│   └── demo-burst.ps1            # short burst for live demos
 ├── prometheus/prometheus.yml
 ├── loki/loki-config.yml
 ├── promtail/promtail-config.yml
@@ -175,6 +180,18 @@ docker compose up -d --build wildfly
 ## Demo checks
 
 ```powershell
+# Make EVERY dashboard live at once (traffic + management/audit activity)
+.\scripts\demo-all.ps1 -DurationSec 300 -Workers 6
+
+# Or just app traffic (HTTP + DB + business). Use -Workers for parallel requests.
+.\scripts\load-traffic.ps1 -DurationSec 300 -DelayMs 80 -Workers 6 -Failures
+
+# Only management/audit activity (Security & Audit dashboard)
+.\scripts\mgmt-activity.ps1 -Rounds 40 -DelayMs 750
+
+# Short burst for a live demo / screenshots
+.\scripts\demo-burst.ps1
+
 # Business metrics: register + force a validation failure
 # then open http://localhost:3000/d/kitchensink-app
 
