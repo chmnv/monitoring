@@ -79,7 +79,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Average request processing time. The 'latency' golden signal.",
+      "description": "Average request time per servlet (total_request_time / request_count at deployment scope). The listener-level processing_time counter stays 0 in WildFly, so latency is derived from the servlet-scoped metric. The 'latency' golden signal.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -103,9 +103,9 @@
       },
       "pluginVersion": "11.6.1",
       "targets": [
-        { "editorMode": "code", "expr": "sum(rate(wildfly_undertow_processing_time_total_seconds{job=\"wildfly-management\"}[5m])) / clamp_min(sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])), 0.0001)", "legendFormat": "avg", "range": true, "refId": "A" }
+        { "editorMode": "code", "expr": "sum(rate(wildfly_undertow_total_request_time_total_seconds{job=\"wildfly-management\",deployment=\"kitchensink.war\"}[5m])) / clamp_min(sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",deployment=\"kitchensink.war\"}[5m])), 0.0001)", "legendFormat": "avg", "range": true, "refId": "A" }
       ],
-      "title": "Avg Processing Time",
+      "title": "Avg Request Time",
       "type": "stat"
     },
     {
@@ -258,7 +258,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Average (derived) and peak request processing time.",
+      "description": "Average (derived) and peak request time at the servlet/deployment scope. Uses total_request_time & max_request_time (the listener processing_time counter is always 0 in WildFly).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -283,10 +283,10 @@
       },
       "pluginVersion": "11.6.1",
       "targets": [
-        { "editorMode": "code", "expr": "sum(rate(wildfly_undertow_processing_time_total_seconds{job=\"wildfly-management\"}[5m])) / clamp_min(sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])), 0.0001)", "legendFormat": "avg processing time", "range": true, "refId": "A" },
-        { "editorMode": "code", "expr": "max(wildfly_undertow_max_processing_time_seconds{job=\"wildfly-management\"})", "legendFormat": "max processing time", "range": true, "refId": "B" }
+        { "editorMode": "code", "expr": "sum(rate(wildfly_undertow_total_request_time_total_seconds{job=\"wildfly-management\",deployment=\"kitchensink.war\"}[5m])) / clamp_min(sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",deployment=\"kitchensink.war\"}[5m])), 0.0001)", "legendFormat": "avg request time", "range": true, "refId": "A" },
+        { "editorMode": "code", "expr": "max(wildfly_undertow_max_request_time_seconds{job=\"wildfly-management\",deployment=\"kitchensink.war\"})", "legendFormat": "max request time", "range": true, "refId": "B" }
       ],
-      "title": "Processing Time (avg vs max)",
+      "title": "Request Time (avg vs max)",
       "type": "timeseries"
     },
     {
@@ -538,5 +538,5 @@
   "timezone": "browser",
   "title": "WildFly HTTP & Datasources",
   "uid": "wildfly-http-db",
-  "version": 1
+  "version": 2
 }
