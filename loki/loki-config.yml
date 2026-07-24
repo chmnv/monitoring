@@ -1,0 +1,57 @@
+# Loki 3.x — single-binary deployment with local filesystem storage.
+# Sized for a local/portfolio stack (one replica, in-memory ring, 7-day retention).
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9096
+  log_level: warn
+
+common:
+  instance_addr: 127.0.0.1
+  path_prefix: /loki
+  storage:
+    filesystem:
+      chunks_directory: /loki/chunks
+      rules_directory: /loki/rules
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+
+# TSDB index (current Loki default) stored on the local filesystem.
+schema_config:
+  configs:
+    - from: 2020-10-24
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
+
+storage_config:
+  tsdb_shipper:
+    active_index_directory: /loki/tsdb-index
+    cache_location: /loki/tsdb-cache
+  filesystem:
+    directory: /loki/chunks
+
+# Compactor enforces retention (deletes chunks older than retention_period).
+compactor:
+  working_directory: /loki/compactor
+  delete_request_store: filesystem
+  retention_enabled: true
+
+limits_config:
+  retention_period: 168h          # keep 7 days of logs
+  reject_old_samples: false       # tolerate backfilled lines from rotated files
+  allow_structured_metadata: true
+
+# Small in-process cache so repeated dashboard queries stay fast.
+query_range:
+  results_cache:
+    cache:
+      embedded_cache:
+        enabled: true
+        max_size_mb: 100

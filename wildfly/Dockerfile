@@ -49,6 +49,14 @@ ENV MODULE_OPTS="-javaagent:/opt/jmx/jmx_prometheus_javaagent.jar=9404:/opt/jmx/
 COPY --from=builder --chown=jboss:jboss /build/target/kitchensink.war \
      "$JBOSS_HOME/standalone/deployments/kitchensink.war"
 
+# Pre-create the log directory owned by jboss. WildFly creates standalone/log at
+# runtime, so it does not exist in the image; when we mount a named volume here
+# (to share server.log with Promtail) Docker would initialize an EMPTY volume as
+# root:root, and WildFly (running as jboss) could not create server.log
+# ("Permission denied"). Creating it here as jboss makes Docker seed the volume
+# with jboss ownership instead.
+RUN mkdir -p "$JBOSS_HOME/standalone/log"
+
 # Create a management user so the console/HTTP management API at :9990 accept a login
 # (mgmt-users.properties is empty otherwise). Credentials come from build args so they
 # are not hardcoded; --silent suppresses the interactive prompt.

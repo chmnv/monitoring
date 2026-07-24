@@ -14,3 +14,14 @@ datasources:
     jsonData:
       httpMethod: POST         # recommended for Prometheus range/instant queries
       timeInterval: 15s        # matches Prometheus global scrape_interval
+
+  # Loki — log datasource queried with LogQL. Wired in automatically like Prometheus.
+  - name: Loki
+    type: loki
+    uid: loki                  # stable UID referenced by log dashboards
+    access: proxy              # Grafana server calls Loki (not the browser)
+    url: http://loki:3100      # Docker service DNS on the shared network
+    isDefault: false
+    editable: false            # provisioned config is the source of truth
+    jsonData:
+      maxLines: 1000           # cap lines returned per query for UI responsiveness

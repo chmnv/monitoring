@@ -1,6 +1,6 @@
 # Local monitoring platform — Compose stack.
-# Current step: WildFly application + Prometheus only.
-# (Grafana, Loki, Promtail, cAdvisor, windows_exporter come in later steps.)
+# Services: WildFly app + Prometheus (metrics) + Grafana (UI) + Loki/Promtail (logs).
+# Host metrics come from windows_exporter running natively on the Windows host.
 
 name: monitoring
 
@@ -29,6 +29,10 @@ services:
       - "8080:8080"   # application
       - "9404:9404"   # JMX Exporter (Prometheus scrape target)
       - "9990:9990"   # WildFly management console / API
+    volumes:
+      # Share WildFly's log directory with Promtail via a named volume so the
+      # server.log lines can be tailed and shipped to Loki.
+      - wildfly-logs:/opt/jboss/wildfly/standalone/log
     networks:
       - monitoring
     healthcheck:
@@ -113,6 +117,51 @@ services:
       retries: 5
       start_period: 30s
 
+  # ---------------------------------------------------------------------------
+  # Loki — log aggregation backend (the "Prometheus for logs"). Single-binary
+  # mode with local filesystem storage; queried by Grafana via LogQL.
+  # ---------------------------------------------------------------------------
+  loki:
+    image: grafana/loki:3.5.1   # pinned, official image, no :latest
+    container_name: loki
+    restart: unless-stopped
+    command: ["-config.file=/etc/loki/loki-config.yml"]
+    volumes:
+      - ./loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki-data:/loki            # named volume keeps chunks + index across restarts
+    ports:
+      - "3100:3100"   # Loki HTTP API (push + query)
+    networks:
+      - monitoring
+    healthcheck:
+      # busybox wget ships in the Loki image; /ready flips to 200 once Loki is up.
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3100/ready"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ---------------------------------------------------------------------------
+  # Promtail — log shipper. Tails WildFly's server.log from the shared volume,
+  # parses it, and pushes labeled streams to Loki.
+  # ---------------------------------------------------------------------------
+  promtail:
+    image: grafana/promtail:3.5.1   # pinned, official image, no :latest
+    container_name: promtail
+    restart: unless-stopped
+    command: ["-config.file=/etc/promtail/promtail-config.yml"]
+    volumes:
+      - ./promtail/promtail-config.yml:/etc/promtail/promtail-config.yml:ro
+      # Read-only view of WildFly's logs (same named volume the app writes to).
+      - wildfly-logs:/var/log/wildfly:ro
+    networks:
+      - monitoring
+    # No healthcheck: this image ships without wget/curl, and nothing depends on
+    # Promtail being "healthy" (Loki accepts pushes whenever Promtail is ready).
+    depends_on:
+      loki:
+        condition: service_healthy   # don't ship before Loki can accept pushes
+
 # Host-level metrics come from windows_exporter, which runs natively on the
 # Windows host (NOT in Docker) and is scraped by Prometheus via
 # host.docker.internal:9182 (see prometheus.yml). cAdvisor was dropped: on
@@ -129,3 +178,5 @@ networks:
 volumes:
   prometheus-data:   # Prometheus time-series database
   grafana-data:      # Grafana internal DB (users, preferences, dashboard state)
+  loki-data:         # Loki chunks + TSDB index
+  wildfly-logs:      # WildFly standalone/log, shared read-only with Promtail

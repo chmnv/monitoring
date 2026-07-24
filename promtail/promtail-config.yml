@@ -1,0 +1,38 @@
+# Promtail — tails WildFly's server.log from the shared log volume and ships
+# the lines to Loki. One scrape job; a pipeline parses the standard WildFly
+# log format and promotes the level to a Loki label.
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0            # gRPC server disabled (not needed)
+
+# Remembers how far each file was read, so restarts don't re-ingest everything.
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: wildfly
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: wildfly
+          host: wildfly
+          __path__: /var/log/wildfly/*.log
+    pipeline_stages:
+      # Stack traces span many lines; attach continuation lines (those NOT
+      # starting with a timestamp) to the preceding log entry.
+      - multiline:
+          firstline: '^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}'
+          max_wait_time: 3s
+      # Standard WildFly line: "2026-07-24 08:00:00,123 INFO  [logger] (thread) msg"
+      - regex:
+          expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) (?P<level>\w+)\s+\[(?P<logger>[^\]]+)\]'
+      # Level becomes a queryable/filterable label; logger stays in the line.
+      - labels:
+          level:
+      # Use the log's own timestamp instead of ingestion time.
+      - timestamp:
+          source: timestamp
+          format: '2006-01-02 15:04:05,000'
