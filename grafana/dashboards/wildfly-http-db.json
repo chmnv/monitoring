@@ -536,7 +536,7 @@
   "time": { "from": "now-1h", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
-  "title": "WildFly HTTP & Datasources",
+  "title": "04 WildFly HTTP & Datasources",
   "uid": "wildfly-http-db",
-  "version": 2
+  "version": 3
 }

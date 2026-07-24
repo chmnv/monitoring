@@ -24,6 +24,7 @@ import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Root;
 import java.util.List;
 
+import org.jboss.as.quickstarts.kitchensink.metrics.AppMetrics;
 import org.jboss.as.quickstarts.kitchensink.model.Member;
 
 @ApplicationScoped
@@ -33,33 +34,52 @@ public class MemberRepository {
     private EntityManager em;
 
     public Member findById(Long id) {
-        return em.find(Member.class, id);
+        long start = System.nanoTime();
+        try {
+            return em.find(Member.class, id);
+        } finally {
+            observe("findById", start);
+        }
     }
 
     public Member findByEmail(String email) {
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<Member> criteria = cb.createQuery(Member.class);
-        Root<Member> member = criteria.from(Member.class);
-        // Swap criteria statements if you would like to try out type-safe criteria queries, a new
-        // feature in JPA 2.0
-        // criteria.select(member).where(cb.equal(member.get(Member_.email), email));
-        criteria.select(member).where(cb.equal(member.get("email"), email));
-        return em.createQuery(criteria).getSingleResult();
+        long start = System.nanoTime();
+        try {
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaQuery<Member> criteria = cb.createQuery(Member.class);
+            Root<Member> member = criteria.from(Member.class);
+            criteria.select(member).where(cb.equal(member.get("email"), email));
+            return em.createQuery(criteria).getSingleResult();
+        } finally {
+            observe("findByEmail", start);
+        }
     }
 
     public List<Member> findAllOrderedByName() {
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<Member> criteria = cb.createQuery(Member.class);
-        Root<Member> member = criteria.from(Member.class);
-        // Swap criteria statements if you would like to try out type-safe criteria queries, a new
-        // feature in JPA 2.0
-        // criteria.select(member).orderBy(cb.asc(member.get(Member_.name)));
-        criteria.select(member).orderBy(cb.asc(member.get("name")));
-        return em.createQuery(criteria).getResultList();
+        long start = System.nanoTime();
+        try {
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaQuery<Member> criteria = cb.createQuery(Member.class);
+            Root<Member> member = criteria.from(Member.class);
+            criteria.select(member).orderBy(cb.asc(member.get("name")));
+            return em.createQuery(criteria).getResultList();
+        } finally {
+            observe("findAll", start);
+        }
     }
 
     /** Total members in the DB — used to seed the kitchensink_members gauge on startup. */
     public long countAll() {
-        return em.createQuery("select count(m) from Member m", Long.class).getSingleResult();
+        long start = System.nanoTime();
+        try {
+            return em.createQuery("select count(m) from Member m", Long.class).getSingleResult();
+        } finally {
+            observe("countAll", start);
+        }
+    }
+
+    private static void observe(String operation, long startNanos) {
+        AppMetrics.DB_OPERATION.labelValues(operation)
+                .observe((System.nanoTime() - startNanos) / 1_000_000_000.0);
     }
 }

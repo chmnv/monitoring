@@ -402,7 +402,7 @@
   "time": { "from": "now-1h", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Application - Kitchensink Business",
+  "title": "06 Application - Kitchensink Business",
   "uid": "kitchensink-app",
-  "version": 1
+  "version": 3
 }

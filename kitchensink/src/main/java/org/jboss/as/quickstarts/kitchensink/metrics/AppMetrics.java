@@ -43,6 +43,16 @@ public final class AppMetrics {
             .help("Current number of registered members")
             .register();
 
+    /**
+     * Per-operation DB/JPA timing (find, persist, count, …). Complements WildFly
+     * pool average_usage_time / get_time (connection hold time at the pool layer).
+     */
+    public static final Histogram DB_OPERATION = Histogram.builder()
+            .name("kitchensink_db_operation_duration_seconds")
+            .help("Time spent in a kitchensink DB/JPA operation, in seconds")
+            .labelNames("operation")
+            .register();
+
     private AppMetrics() {
         // utility holder — not instantiable
     }

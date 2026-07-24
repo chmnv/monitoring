@@ -1059,7 +1059,7 @@
           "showLineNumbers": false,
           "showMiniMap": false
         },
-        "content": "### Navigation\n\n**JVM** — [JVM Overview](/d/jvm-overview)  \n**WildFly** — [HTTP & Datasources](/d/wildfly-http-db)  \n**Application** — [Kitchensink Business](/d/kitchensink-app)  \n**Infrastructure** — [Windows Host](/d/windows-host)  \n**Logs** — [WildFly Logs](/d/wildfly-logs) · [Security & Audit](/d/wildfly-security)\n\n_More dashboards are added as code (dashboards-as-code)._",
+        "content": "### Navigation\n\n**JVM** — [JVM Overview](/d/jvm-overview)  \n**WildFly** — [HTTP & Datasources](/d/wildfly-http-db) · [Database & Query Timing](/d/wildfly-db)  \n**Application** — [Kitchensink Business](/d/kitchensink-app)  \n**Infrastructure** — [Windows Host](/d/windows-host)  \n**Logs** — [WildFly Logs](/d/wildfly-logs) · [Security & Audit](/d/wildfly-security)\n\n_More dashboards are added as code (dashboards-as-code)._",
         "mode": "markdown"
       },
       "pluginVersion": "11.6.1",
@@ -1088,7 +1088,7 @@
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Platform Overview",
+  "title": "01 Platform Overview",
   "uid": "afsypu2byt8u8b",
-  "version": 30
+  "version": 31
 }

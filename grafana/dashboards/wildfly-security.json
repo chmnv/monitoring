@@ -354,7 +354,7 @@
   "time": { "from": "now-6h", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
-  "title": "WildFly Security & Audit",
+  "title": "08 WildFly Security & Audit",
   "uid": "wildfly-security",
-  "version": 3
+  "version": 5
 }

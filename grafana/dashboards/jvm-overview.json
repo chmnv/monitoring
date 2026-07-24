@@ -539,7 +539,7 @@
   "time": { "from": "now-1h", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
-  "title": "JVM Overview",
+  "title": "03 JVM Overview",
   "uid": "jvm-overview",
-  "version": 3
+  "version": 4
 }

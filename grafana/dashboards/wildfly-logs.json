@@ -327,7 +327,7 @@
   "time": { "from": "now-6h", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
-  "title": "WildFly Logs",
+  "title": "07 WildFly Logs",
   "uid": "wildfly-logs",
-  "version": 2
+  "version": 4
 }

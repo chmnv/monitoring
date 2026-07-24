@@ -503,7 +503,7 @@
   "time": { "from": "now-1h", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Windows Host",
+  "title": "02 Windows Host",
   "uid": "windows-host",
-  "version": 4
+  "version": 5
 }

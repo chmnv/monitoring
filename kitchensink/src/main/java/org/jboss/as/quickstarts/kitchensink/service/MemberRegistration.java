@@ -44,8 +44,10 @@ public class MemberRegistration {
         log.info("Registering " + member.getName());
         em.persist(member);
         memberEventSrc.fire(member);
+        double seconds = (System.nanoTime() - startNanos) / 1_000_000_000.0;
         // Observe only on success so failed attempts do not skew latency percentiles.
-        AppMetrics.DURATION.observe((System.nanoTime() - startNanos) / 1_000_000_000.0);
+        AppMetrics.DURATION.observe(seconds);
+        AppMetrics.DB_OPERATION.labelValues("persist").observe(seconds);
         // RED "rate" + business KPI (member inventory).
         AppMetrics.REGISTRATIONS.inc();
         AppMetrics.MEMBERS.inc();
