@@ -1,0 +1,215 @@
+# Alert rules as code. Each rule runs an instant Prometheus query (refId A) and
+# feeds it into a threshold expression (refId C) that decides fire/OK. Grafana
+# creates the "Platform Alerts" folder automatically on load.
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: platform-alerts
+    folder: Platform Alerts
+    interval: 1m
+    rules:
+      # -------------------------------------------------------------------
+      # WildFly is DOWN — the JMX exporter target stopped being scraped.
+      # Fires within 1 min of the app/container going away. Critical.
+      # -------------------------------------------------------------------
+      - uid: alert_wildfly_down
+        title: WildFly Down
+        condition: C
+        for: 1m
+        noDataState: Alerting
+        execErrState: Error
+        labels:
+          severity: critical
+        annotations:
+          summary: "WildFly is DOWN — no metrics from job wildfly-jmx for 1 minute."
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              editorMode: code
+              expr: 'up{job="wildfly-jmx"}'
+              instant: true
+              range: false
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: C
+              intervalMs: 1000
+              maxDataPoints: 43200
+              conditions:
+                - type: query
+                  evaluator:
+                    type: lt
+                    params: [1, 0]
+                  operator:
+                    type: and
+                  query:
+                    params: [C]
+                  reducer:
+                    type: last
+                    params: []
+
+      # -------------------------------------------------------------------
+      # Host CPU saturated (> 85% busy for 5 min). Warning.
+      # -------------------------------------------------------------------
+      - uid: alert_host_cpu_high
+        title: High Host CPU
+        condition: C
+        for: 5m
+        noDataState: NoData
+        execErrState: Error
+        labels:
+          severity: warning
+        annotations:
+          summary: "Windows host CPU above 85% for 5 minutes."
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              editorMode: code
+              expr: '100 - (avg(rate(windows_cpu_time_total{mode="idle"}[5m])) * 100)'
+              instant: true
+              range: false
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: C
+              intervalMs: 1000
+              maxDataPoints: 43200
+              conditions:
+                - type: query
+                  evaluator:
+                    type: gt
+                    params: [85, 0]
+                  operator:
+                    type: and
+                  query:
+                    params: [C]
+                  reducer:
+                    type: last
+                    params: []
+
+      # -------------------------------------------------------------------
+      # Host memory pressure (> 93% used for 5 min). Warning.
+      # -------------------------------------------------------------------
+      - uid: alert_host_mem_high
+        title: High Host Memory
+        condition: C
+        for: 5m
+        noDataState: NoData
+        execErrState: Error
+        labels:
+          severity: warning
+        annotations:
+          summary: "Windows host RAM usage above 93% for 5 minutes."
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              editorMode: code
+              expr: '(1 - windows_memory_available_bytes / windows_memory_physical_total_bytes) * 100'
+              instant: true
+              range: false
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: C
+              intervalMs: 1000
+              maxDataPoints: 43200
+              conditions:
+                - type: query
+                  evaluator:
+                    type: gt
+                    params: [93, 0]
+                  operator:
+                    type: and
+                  query:
+                    params: [C]
+                  reducer:
+                    type: last
+                    params: []
+
+      # -------------------------------------------------------------------
+      # System disk (C:) almost full (> 90% used for 5 min). Warning.
+      # -------------------------------------------------------------------
+      - uid: alert_disk_c_full
+        title: Disk C Almost Full
+        condition: C
+        for: 5m
+        noDataState: NoData
+        execErrState: Error
+        labels:
+          severity: warning
+        annotations:
+          summary: "System disk C: above 90% used for 5 minutes."
+        data:
+          - refId: A
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: prometheus
+            model:
+              editorMode: code
+              expr: '100 * (1 - windows_logical_disk_free_bytes{volume="C:"} / windows_logical_disk_size_bytes{volume="C:"})'
+              instant: true
+              range: false
+              intervalMs: 1000
+              maxDataPoints: 43200
+              refId: A
+          - refId: C
+            relativeTimeRange:
+              from: 300
+              to: 0
+            datasourceUid: __expr__
+            model:
+              type: threshold
+              expression: A
+              refId: C
+              intervalMs: 1000
+              maxDataPoints: 43200
+              conditions:
+                - type: query
+                  evaluator:
+                    type: gt
+                    params: [90, 0]
+                  operator:
+                    type: and
+                  query:
+                    params: [C]
+                  reducer:
+                    type: last
+                    params: []

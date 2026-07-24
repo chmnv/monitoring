@@ -1,0 +1,14 @@
+# Alerting contact point: where notifications are sent.
+# The email address is injected from the ALERT_EMAIL_TO environment variable
+# ($__env{...}) so no personal address is committed to the repo.
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: email-admin
+    receivers:
+      - uid: email_admin_recv
+        type: email
+        settings:
+          addresses: $__env{ALERT_EMAIL_TO}
+          singleEmail: true
