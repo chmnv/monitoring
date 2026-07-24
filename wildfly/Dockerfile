@@ -64,6 +64,20 @@ ARG MGMT_USER=admin
 ARG MGMT_PASSWORD=admin
 RUN "$JBOSS_HOME/bin/add-user.sh" "$MGMT_USER" "$MGMT_PASSWORD" --silent
 
+# Enable the MANAGEMENT AUDIT LOG at build time (edits standalone.xml offline via
+# embed-server). WildFly ships it disabled; once on, every management operation is
+# recorded as JSON (user, access type HTTP/CLI/NATIVE, remote address, success,
+# read/write) — the data source for the Security & Audit dashboard.
+#   - enabled=true            : turn the audit logger on
+#   - log-read-only=true      : also record read operations (console browsing, reads),
+#                               so the dashboard has activity to show, not only changes
+#   - file-handler relative-to=jboss.server.log.dir : write audit-log.log into
+#                               standalone/log (the volume shared with Promtail) instead
+#                               of standalone/data (which Promtail does not mount)
+#   - json-formatter compact=true : write each record as ONE line of JSON so Promtail
+#                               can parse it (default is pretty-printed multi-line JSON)
+RUN "$JBOSS_HOME/bin/jboss-cli.sh" --commands="embed-server --server-config=standalone.xml,/core-service=management/access=audit/logger=audit-log:write-attribute(name=enabled,value=true),/core-service=management/access=audit/logger=audit-log:write-attribute(name=log-read-only,value=true),/core-service=management/access=audit/file-handler=file:write-attribute(name=relative-to,value=jboss.server.log.dir),/core-service=management/access=audit/json-formatter=json-formatter:write-attribute(name=compact,value=true),stop-embedded-server"
+
 # 8080 = app | 9990 = management | 9404 = Prometheus metrics (JMX Exporter)
 EXPOSE 8080 9990 9404
 

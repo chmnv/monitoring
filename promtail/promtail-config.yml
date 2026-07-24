@@ -13,13 +13,14 @@ clients:
   - url: http://loki:3100/loki/api/v1/push
 
 scrape_configs:
+  # WildFly server log (human-readable text format).
   - job_name: wildfly
     static_configs:
       - targets: [localhost]
         labels:
           job: wildfly
           host: wildfly
-          __path__: /var/log/wildfly/*.log
+          __path__: /var/log/wildfly/server.log
     pipeline_stages:
       # Stack traces span many lines; attach continuation lines (those NOT
       # starting with a timestamp) to the preceding log entry.
@@ -36,3 +37,48 @@ scrape_configs:
       - timestamp:
           source: timestamp
           format: '2006-01-02 15:04:05,000'
+
+  # WildFly MANAGEMENT AUDIT log (JSON, one record per line). Records every
+  # management operation: user, access channel, remote address, success, r/w.
+  - job_name: wildfly-audit
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: wildfly-audit
+          host: wildfly
+          __path__: /var/log/wildfly/audit-log.log
+    pipeline_stages:
+      # Each line is "2026-07-24 08:42:49 - {json...}". Split off the JSON body.
+      - regex:
+          expression: '^(?P<ts>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) - (?P<audit>\{.*\})$'
+      - timestamp:
+          source: ts
+          format: '2006-01-02 15:04:05'
+      # Pull fields out of the JSON (keys with special chars are quoted JMESPath;
+      # operation is the first entry of the ops[] array).
+      - json:
+          source: audit
+          expressions:
+            user: user
+            access: access
+            success: success
+            readonly: '"r/o"'
+            booting: booting
+            operation: 'ops[0].operation'
+      # Drop the flood of boot-time operations — keep real runtime activity only.
+      - drop:
+          source: booting
+          value: "true"
+          drop_counter_reason: audit_boot_op
+      # Promote the useful, low-cardinality fields to labels for filtering/graphing.
+      - labels:
+          user:
+          access:
+          success:
+      # Render a compact, human-readable line instead of raw JSON, e.g.
+      #   "admin · NATIVE · read-attribute · OK"  or  "admin · HTTP · write-attribute · FAILED · WRITE"
+      - template:
+          source: message
+          template: '{{ .user }} · {{ if .access }}{{ .access }}{{ else }}internal{{ end }} · {{ .operation }} · {{ if eq .success "true" }}OK{{ else }}FAILED{{ end }}{{ if eq .readonly "false" }} · WRITE{{ end }}'
+      - output:
+          source: message
