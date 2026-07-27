@@ -164,7 +164,7 @@ $workerScript = {
             } catch { }
             return "fail"
         }
-        if ($roll -lt 86) {
+        if ($roll -lt 82) {
             # Dashboard 14 — account recovery (never mutate seeded john.smith password)
             $auth = "$BaseUrl/rest/auth"
             $pick = Get-Random -Maximum 100
@@ -258,7 +258,70 @@ $workerScript = {
             } catch { }
             return "fail"
         }
-        if ($roll -lt 89 -and $DoFailures) {
+        if ($roll -lt 90) {
+            # Dashboard 15 — app authorization (≠ WildFly management audit)
+            $auth = "$BaseUrl/rest/auth"
+            $admin = "$BaseUrl/rest/admin"
+            $pick = Get-Random -Maximum 100
+            if ($pick -lt 35) {
+                # allowed: login as seeded admin → stats / export
+                $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+                $body = @{ email = "john.smith@mailinator.com"; password = "demo" } | ConvertTo-Json -Compress
+                try {
+                    Invoke-WebRequest -Uri "$auth/login" -Method POST -Body $body -ContentType "application/json; charset=utf-8" -WebSession $session -UseBasicParsing -TimeoutSec 10 | Out-Null
+                    if ((Get-Random -Maximum 2) -eq 0) {
+                        Invoke-WebRequest -Uri "$admin/stats" -WebSession $session -UseBasicParsing -TimeoutSec 10 | Out-Null
+                    } else {
+                        Invoke-WebRequest -Uri "$admin/export" -WebSession $session -UseBasicParsing -TimeoutSec 10 | Out-Null
+                    }
+                    return "ok"
+                } catch { return "fail" }
+            }
+            if ($pick -lt 55) {
+                # denied: login as seeded member → privileged op
+                $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+                $body = @{ email = "jane.doe@mailinator.com"; password = "demo" } | ConvertTo-Json -Compress
+                try {
+                    Invoke-WebRequest -Uri "$auth/login" -Method POST -Body $body -ContentType "application/json; charset=utf-8" -WebSession $session -UseBasicParsing -TimeoutSec 10 | Out-Null
+                    try {
+                        Invoke-WebRequest -Uri "$admin/stats" -WebSession $session -UseBasicParsing -TimeoutSec 10 | Out-Null
+                    } catch { }
+                    return "fail"
+                } catch { return "fail" }
+            }
+            if ($pick -lt 70) {
+                # unauthenticated: no session
+                try {
+                    Invoke-WebRequest -Uri "$admin/stats" -UseBasicParsing -TimeoutSec 10 | Out-Null
+                } catch { }
+                return "fail"
+            }
+            # allowed set_role on ephemeral user (then demote back)
+            $suffix = -join ((97..122) | Get-Random -Count 6 | ForEach-Object { [char]$_ })
+            $email = "authz-$suffix-$(Get-Random)@example.com"
+            $reg = @{
+                name        = "Load User $suffix"
+                email       = $email
+                phoneNumber = ("212555{0:D4}" -f (Get-Random -Maximum 10000))
+            } | ConvertTo-Json -Compress
+            $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
+            try {
+                $resp = Invoke-WebRequest -Uri $Rest -Method POST -Body $reg -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10
+                $json = $resp.Content | ConvertFrom-Json
+                if ($json.activationToken) {
+                    $ab = @{ token = $json.activationToken } | ConvertTo-Json -Compress
+                    Invoke-WebRequest -Uri "$auth/activate" -Method POST -Body $ab -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
+                }
+                $login = @{ email = "john.smith@mailinator.com"; password = "demo" } | ConvertTo-Json -Compress
+                Invoke-WebRequest -Uri "$auth/login" -Method POST -Body $login -ContentType "application/json; charset=utf-8" -WebSession $session -UseBasicParsing -TimeoutSec 10 | Out-Null
+                $promote = @{ email = $email; role = "admin" } | ConvertTo-Json -Compress
+                Invoke-WebRequest -Uri "$admin/role" -Method POST -Body $promote -ContentType "application/json; charset=utf-8" -WebSession $session -UseBasicParsing -TimeoutSec 10 | Out-Null
+                $demote = @{ email = $email; role = "member" } | ConvertTo-Json -Compress
+                Invoke-WebRequest -Uri "$admin/role" -Method POST -Body $demote -ContentType "application/json; charset=utf-8" -WebSession $session -UseBasicParsing -TimeoutSec 10 | Out-Null
+                return "ok"
+            } catch { return "fail" }
+        }
+        if ($roll -lt 92 -and $DoFailures) {
             # Bad name (digits) → Bean Validation Pattern on name
             $body = @{ name = "Bad123"; email = "bad-name-$Index@example.com"; phoneNumber = "2125551234" } | ConvertTo-Json -Compress
             try {
@@ -266,7 +329,7 @@ $workerScript = {
                 return "ok"
             } catch { return "fail" }
         }
-        if ($roll -lt 91 -and $DoFailures) {
+        if ($roll -lt 93 -and $DoFailures) {
             # Bad email → Email constraint
             $suffix = -join ((97..122) | Get-Random -Count 5 | ForEach-Object { [char]$_ })
             $body = @{ name = "Bad Email $suffix"; email = "not-an-email"; phoneNumber = "2125559999" } | ConvertTo-Json -Compress
@@ -275,7 +338,7 @@ $workerScript = {
                 return "ok"
             } catch { return "fail" }
         }
-        if ($roll -lt 93 -and $DoFailures) {
+        if ($roll -lt 94 -and $DoFailures) {
             # Short / non-digit phone → Size + Digits on phoneNumber
             $suffix = -join ((97..122) | Get-Random -Count 5 | ForEach-Object { [char]$_ })
             $body = @{ name = "Bad Phone $suffix"; email = "bad-phone-$suffix@example.com"; phoneNumber = "12ab" } | ConvertTo-Json -Compress
@@ -359,4 +422,4 @@ finally {
 
 Write-Host ""
 Write-Host "Done. total~$n get=$get post_ok=$ok fail=$fail"
-Write-Host "Check: http://localhost:3000/d/account-recovery  http://localhost:3000/d/account-activation  http://localhost:3000/d/auth-sessions"
+Write-Host "Check: http://localhost:3000/d/app-authorization  http://localhost:3000/d/account-recovery  http://localhost:3000/d/auth-sessions"

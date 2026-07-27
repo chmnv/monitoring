@@ -187,6 +187,30 @@ public final class AppMetrics {
             .help("Accounts that completed a password reset")
             .register();
 
+    /**
+     * Privileged operation attempts for dashboard 15 (app authz ≠ WildFly audit on 08).
+     * Outcomes: allowed, denied, unauthenticated, error.
+     * Operations: stats, export, set_role.
+     */
+    public static final Counter AUTHZ_ATTEMPTS = Counter.builder()
+            .name("kitchensink_authz_attempts")
+            .help("Privileged operation attempts by outcome and operation")
+            .labelNames("outcome", "operation")
+            .register();
+
+    public static final Histogram AUTHZ_DURATION = Histogram.builder()
+            .name("kitchensink_authz_duration_seconds")
+            .help("Time spent handling a privileged operation, in seconds")
+            .labelNames("operation")
+            .register();
+
+    /** Account counts by application role (member / admin). */
+    public static final Gauge ACCOUNTS_BY_ROLE = Gauge.builder()
+            .name("kitchensink_accounts_by_role")
+            .help("Accounts grouped by application role")
+            .labelNames("role")
+            .register();
+
     private AppMetrics() {
         // utility holder — not instantiable
     }

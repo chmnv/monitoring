@@ -99,8 +99,9 @@ The WAR is **never** committed — it is always built from `./kitchensink` durin
 | 12 | Authentication & Sessions | `auth-sessions` | App login outcomes + active sessions |
 | 13 | Account Activation | `account-activation` | Pending → token → activated funnel |
 | 14 | Account Recovery | `account-recovery` | Reset tokens + post-reset login |
+| 15 | Authorization & Privileged Ops | `app-authorization` | Allow/deny by app role (≠ WildFly audit) |
 
-Target for mentor deliverable: **15** (see private notes / roadmap). Current live set: **14**.
+Target for mentor deliverable: **15** (see private notes / roadmap). Current live set: **15**.
 
 ## Application / business metrics
 
@@ -127,6 +128,9 @@ Target for mentor deliverable: **15** (see private notes / roadmap). Current liv
 - `kitchensink_recovery_duration_seconds` — reset latency histogram
 - `kitchensink_recovery_pending` — open recovery tokens
 - `kitchensink_recovery_completed_total` — successful password resets
+- `kitchensink_authz_attempts_total{outcome,operation}` — privileged allow / deny / unauthenticated / error (dashboard 15)
+- `kitchensink_authz_duration_seconds{operation}` — privileged op latency
+- `kitchensink_accounts_by_role{role}` — member / admin counts
 - `kitchensink_registration_duration_seconds` — histogram (avg / p95 / p99)
 - `kitchensink_db_operation_duration_seconds{operation}` — JPA/DB op timing
   (`findAll`, `findById`, `findByEmail`, `persist` after flush, `countAll`)
@@ -179,6 +183,7 @@ Open:
 | http://localhost:8080/kitchensink/login.html | Member login (dashboard 12) |
 | http://localhost:8080/kitchensink/activate.html | Account activation (dashboard 13) |
 | http://localhost:8080/kitchensink/recover.html | Account recovery (dashboard 14) |
+| http://localhost:8080/kitchensink/admin.html | Privileged ops / authz (dashboard 15) |
 | http://localhost:9990 | WildFly Management (`admin` / `admin`) |
 | http://localhost:9404/metrics | JMX Exporter |
 | http://localhost:8080/kitchensink/metrics | Business metrics |

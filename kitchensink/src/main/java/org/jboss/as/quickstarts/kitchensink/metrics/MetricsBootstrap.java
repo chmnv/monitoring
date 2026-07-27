@@ -80,8 +80,26 @@ public class MetricsBootstrap {
                         "select count(a) from AuthAccount a where a.recoveryToken is not null", Long.class)
                 .getSingleResult();
         AppMetrics.RECOVERY_PENDING.set(recoveryOpen);
+        // Authz outcomes for dashboard 15.
+        String[] authzOutcomes = { "allowed", "denied", "unauthenticated", "error" };
+        String[] authzOps = { "stats", "export", "set_role" };
+        for (String outcome : authzOutcomes) {
+            for (String op : authzOps) {
+                AppMetrics.AUTHZ_ATTEMPTS.labelValues(outcome, op).inc(0);
+            }
+        }
+        long admins = em.createQuery(
+                        "select count(a) from AuthAccount a where a.role = :r", Long.class)
+                .setParameter("r", AuthAccount.ROLE_ADMIN)
+                .getSingleResult();
+        long membersRole = em.createQuery(
+                        "select count(a) from AuthAccount a where a.role = :r", Long.class)
+                .setParameter("r", AuthAccount.ROLE_MEMBER)
+                .getSingleResult();
+        AppMetrics.ACCOUNTS_BY_ROLE.labelValues(AuthAccount.ROLE_ADMIN).set(admins);
+        AppMetrics.ACCOUNTS_BY_ROLE.labelValues(AuthAccount.ROLE_MEMBER).set(membersRole);
         log.info("Seeded kitchensink_members=" + count + " pending=" + pending
-                + " recoveryOpen=" + recoveryOpen
-                + " and failure/search/auth/activation/recovery series");
+                + " recoveryOpen=" + recoveryOpen + " admins=" + admins
+                + " and failure/search/auth/activation/recovery/authz series");
     }
 }

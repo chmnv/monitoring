@@ -9,7 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 /**
- * Demo credentials + activation/recovery state for a Member (dashboards 12–14).
+ * Demo credentials + activation/recovery/role state for a Member (dashboards 12–15).
  * Password is plain text on purpose — monitoring lab app, not a real IdP.
  */
 @SuppressWarnings("serial")
@@ -20,6 +20,9 @@ public class AuthAccount implements Serializable {
     public static final String DEFAULT_PASSWORD = "demo";
     public static final String STATUS_PENDING = "pending";
     public static final String STATUS_ACTIVATED = "activated";
+
+    public static final String ROLE_MEMBER = "member";
+    public static final String ROLE_ADMIN = "admin";
 
     /** Demo token lifetime (1 hour). Load script can force-expire via expire helpers. */
     public static final long TOKEN_TTL_MS = 60L * 60L * 1000L;
@@ -33,6 +36,9 @@ public class AuthAccount implements Serializable {
 
     @Column(nullable = false, length = 32)
     private String status = STATUS_PENDING;
+
+    @Column(name = "app_role", nullable = false, length = 32)
+    private String role = ROLE_MEMBER;
 
     @Column(name = "activation_token", length = 64)
     private String activationToken;
@@ -75,6 +81,18 @@ public class AuthAccount implements Serializable {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public boolean isAdmin() {
+        return ROLE_ADMIN.equals(role);
     }
 
     public String getActivationToken() {

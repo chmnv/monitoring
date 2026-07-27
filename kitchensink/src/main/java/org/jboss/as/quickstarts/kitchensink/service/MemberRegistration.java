@@ -47,6 +47,7 @@ public class MemberRegistration {
         account.setMemberId(member.getId());
         account.setPassword(AuthAccount.DEFAULT_PASSWORD);
         account.setStatus(AuthAccount.STATUS_PENDING);
+        account.setRole(AuthAccount.ROLE_MEMBER);
         account.setActivationToken(token);
         account.setTokenExpiresAt(System.currentTimeMillis() + AuthAccount.TOKEN_TTL_MS);
         em.persist(account);

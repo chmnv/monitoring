@@ -70,6 +70,7 @@ public class AccountRecovery {
             account.setMemberId(member.getId());
             account.setPassword(AuthAccount.DEFAULT_PASSWORD);
             account.setStatus(AuthAccount.STATUS_ACTIVATED);
+            account.setRole(AuthAccount.ROLE_MEMBER);
             account.setActivatedAt(System.currentTimeMillis());
             em.persist(account);
         }

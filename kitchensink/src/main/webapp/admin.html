@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>kitchensink - Admin</title>
+  <link rel="stylesheet" href="resources/css/screen.css"/>
+</head>
+<body>
+  <div id="container">
+    <div class="app-shell">
+      <div class="app-top">
+        <div class="brand">
+          <div class="brand-name">kitchensink</div>
+          <div class="brand-tag">WildFly demo app - dashboard 15</div>
+        </div>
+                <nav class="app-nav" aria-label="Main">
+          <a href="index.jsf">Register</a>
+          <a href="activate.html">Activate</a>
+          <a href="login.html">Login</a>
+          <a href="recover.html">Recover</a>
+          <a class="is-active" href="admin.html">Admin</a>
+          <a href="search.html">Search</a>
+        </nav>
+      </div>
+
+      <div class="app-body">
+        <div class="app-main" id="content">
+          <h1>Privileged operations</h1>
+          <p class="lead">Login first, then try admin actions. Metrics go to Grafana dashboard <strong>15</strong>.</p>
+
+          <div class="tip">
+            <div>Seeded accounts (password <code>demo</code>):</div>
+            <ul class="tip-list">
+              <li><span class="k">Admin</span> john.smith@mailinator.com</li>
+              <li><span class="k">Member</span> jane.doe@mailinator.com (expect denied)</li>
+            </ul>
+          </div>
+
+          <div class="panel">
+            <div class="field">
+              <label class="field-label" for="email">Email</label>
+              <input id="email" type="email" value="john.smith@mailinator.com" autofocus autocomplete="username"/>
+            </div>
+            <div class="field">
+              <label class="field-label" for="password">Password</label>
+              <input id="password" type="password" value="demo" autocomplete="current-password"/>
+            </div>
+            <div class="actions">
+              <button id="login" class="btn-primary" type="button">Login</button>
+              <button id="logout" class="btn-secondary" type="button">Logout</button>
+            </div>
+            <div class="actions">
+              <button id="stats" class="btn-primary" type="button">Admin stats</button>
+              <button id="export" class="btn-secondary" type="button">Export directory</button>
+            </div>
+            <div class="field">
+              <label class="field-label" for="targetEmail">Set role — target email</label>
+              <input id="targetEmail" type="email" value="jane.doe@mailinator.com"/>
+            </div>
+            <div class="field">
+              <label class="field-label" for="targetRole">Role</label>
+              <select id="targetRole">
+                <option value="member">member</option>
+                <option value="admin">admin</option>
+              </select>
+            </div>
+            <div class="actions">
+              <button id="setRole" class="btn-primary" type="button">Set role</button>
+            </div>
+            <p id="status" class="status is-info" role="status">Ready - login as admin, then try privileged actions.</p>
+          </div>
+        </div>
+
+        <div class="app-aside" id="aside">
+          <h3>Outcomes</h3>
+          <ul>
+            <li><strong>allowed</strong> - admin session, op succeeds</li>
+            <li><strong>denied</strong> - logged in as member</li>
+            <li><strong>unauthenticated</strong> - no session</li>
+            <li><strong>error</strong> - bad input / unknown target</li>
+          </ul>
+          <p><a href="http://localhost:3000/d/app-authorization">Open dashboard 15</a></p>
+        </div>
+      </div>
+
+      <div class="app-footer" id="footer">
+        <p>Demo UI for the monitoring stack.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var email = document.getElementById('email');
+      var password = document.getElementById('password');
+      var status = document.getElementById('status');
+      var base = window.location.pathname.replace(/\/[^/]*$/, '') || '';
+
+      function setStatus(text, kind) {
+        status.textContent = text;
+        status.className = 'status' + (kind ? ' is-' + kind : '');
+      }
+
+      function post(path, body) {
+        var opts = {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: body ? { 'Content-Type': 'application/json' } : undefined,
+          body: body ? JSON.stringify(body) : undefined
+        };
+        return fetch(base + path, opts).then(function (r) {
+          return r.json().then(function (j) {
+            return { ok: r.ok, status: r.status, body: j };
+          });
+        });
+      }
+
+      function get(path) {
+        return fetch(base + path, { credentials: 'same-origin' }).then(function (r) {
+          return r.json().then(function (j) {
+            return { ok: r.ok, status: r.status, body: j };
+          });
+        });
+      }
+
+      document.getElementById('login').addEventListener('click', function () {
+        setStatus('Logging in...', 'info');
+        post('/rest/auth/login', { email: email.value, password: password.value })
+          .then(function (r) {
+            if (r.ok) {
+              setStatus('Logged in as ' + r.body.email + ' (role=' + r.body.role + ')', 'ok');
+            } else {
+              setStatus('Login failed: ' + (r.body.error || ('HTTP ' + r.status)), 'bad');
+            }
+          })
+          .catch(function (e) { setStatus('Login error: ' + e.message, 'bad'); });
+      });
+
+      document.getElementById('logout').addEventListener('click', function () {
+        post('/rest/auth/logout')
+          .then(function (r) {
+            setStatus(r.ok ? 'Logged out.' : 'Logout HTTP ' + r.status, r.ok ? 'warn' : 'bad');
+          })
+          .catch(function (e) { setStatus('Logout error: ' + e.message, 'bad'); });
+      });
+
+      document.getElementById('stats').addEventListener('click', function () {
+        setStatus('Calling admin stats...', 'info');
+        get('/rest/admin/stats')
+          .then(function (r) {
+            if (r.ok) {
+              setStatus('Stats OK — members=' + r.body.members + ' admins=' + r.body.admins, 'ok');
+            } else {
+              setStatus('Stats failed: ' + (r.body.error || ('HTTP ' + r.status)), 'bad');
+            }
+          })
+          .catch(function (e) { setStatus('Stats error: ' + e.message, 'bad'); });
+      });
+
+      document.getElementById('export').addEventListener('click', function () {
+        setStatus('Calling admin export...', 'info');
+        get('/rest/admin/export')
+          .then(function (r) {
+            if (r.ok) {
+              setStatus('Export OK — ' + r.body.count + ' entries', 'ok');
+            } else {
+              setStatus('Export failed: ' + (r.body.error || ('HTTP ' + r.status)), 'bad');
+            }
+          })
+          .catch(function (e) { setStatus('Export error: ' + e.message, 'bad'); });
+      });
+
+      document.getElementById('setRole').addEventListener('click', function () {
+        setStatus('Setting role...', 'info');
+        post('/rest/admin/role', {
+          email: document.getElementById('targetEmail').value,
+          role: document.getElementById('targetRole').value
+        })
+          .then(function (r) {
+            if (r.ok) {
+              setStatus('Role set: ' + r.body.email + ' ' + r.body.previousRole + ' → ' + r.body.role, 'ok');
+            } else {
+              setStatus('Set role failed: ' + (r.body.error || ('HTTP ' + r.status)), 'bad');
+            }
+          })
+          .catch(function (e) { setStatus('Set role error: ' + e.message, 'bad'); });
+      });
+    })();
+  </script>
+</body>
+</html>

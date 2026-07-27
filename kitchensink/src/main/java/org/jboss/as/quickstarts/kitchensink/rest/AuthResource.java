@@ -28,7 +28,8 @@ import org.jboss.as.quickstarts.kitchensink.service.AccountRecovery;
 
 /**
  * Application login / logout / session (dashboard 12), account activation (13),
- * and password recovery (14). Distinct from WildFly management audit (dashboard 08).
+ * and password recovery (14). Role is stored on session for authorization (15).
+ * Distinct from WildFly management audit (dashboard 08).
  */
 @Path("/auth")
 @RequestScoped
@@ -38,6 +39,7 @@ public class AuthResource {
     public static final String SESSION_EMAIL = "kitchensink.email";
     public static final String SESSION_LOGIN_AT = "kitchensink.loginAt";
     public static final String SESSION_COUNTED = "kitchensink.sessionCounted";
+    public static final String SESSION_ROLE = "kitchensink.role";
 
     @Inject
     private Logger log;
@@ -105,9 +107,13 @@ public class AuthResource {
             }
 
             HttpSession session = request.getSession(true);
+            String role = account != null && account.getRole() != null
+                    ? account.getRole()
+                    : AuthAccount.ROLE_MEMBER;
             session.setAttribute(SESSION_MEMBER_ID, member.getId());
             session.setAttribute(SESSION_EMAIL, member.getEmail());
             session.setAttribute(SESSION_LOGIN_AT, System.currentTimeMillis());
+            session.setAttribute(SESSION_ROLE, role);
             session.setAttribute(SESSION_COUNTED, Boolean.TRUE);
             AppMetrics.ACTIVE_SESSIONS.inc();
 
@@ -117,6 +123,7 @@ public class AuthResource {
             ok.put("memberId", member.getId());
             ok.put("email", member.getEmail());
             ok.put("name", member.getName());
+            ok.put("role", role);
             return Response.ok(ok).build();
         } catch (Exception e) {
             log.warning("Login failed: " + e.getMessage());
@@ -156,6 +163,7 @@ public class AuthResource {
         body.put("memberId", session.getAttribute(SESSION_MEMBER_ID));
         body.put("email", session.getAttribute(SESSION_EMAIL));
         body.put("loginAt", session.getAttribute(SESSION_LOGIN_AT));
+        body.put("role", session.getAttribute(SESSION_ROLE));
         return Response.ok(body).build();
     }
 
