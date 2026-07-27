@@ -28,17 +28,17 @@ $workerScript = {
     $ErrorActionPreference = "Continue"
     $roll = Get-Random -Maximum 100
     try {
-        if ($roll -lt 32) {
+        if ($roll -lt 28) {
             # List members -> findAll DB op + Undertow GET
             Invoke-WebRequest -Uri $Rest -UseBasicParsing -TimeoutSec 10 | Out-Null
             return "get"
         }
-        if ($roll -lt 42) {
-            # HTML page -> Undertow request + JSF session (Active Sessions panel)
+        if ($roll -lt 36) {
+            # HTML page -> Undertow request + JSF session
             Invoke-WebRequest -Uri "$BaseUrl/" -UseBasicParsing -TimeoutSec 10 | Out-Null
             return "get"
         }
-        if ($roll -lt 50) {
+        if ($roll -lt 44) {
             # Lookup by id -> findById DB op. Mix hits (200) and misses (404).
             $id = if ((Get-Random -Maximum 2) -eq 0) { Get-Random -Minimum 1 -Maximum 8 } else { Get-Random -Minimum 900000 -Maximum 999999 }
             try {
@@ -46,19 +46,19 @@ $workerScript = {
             } catch { }
             return "get"
         }
-        if ($roll -lt 60) {
+        if ($roll -lt 54) {
             # Dashboard 11 — search hit / zero / empty / refine
             $pick = Get-Random -Maximum 100
             if ($pick -lt 40) {
-                $q = "Load"          # matches Load User * from successful regs
+                $q = "Load"
             } elseif ($pick -lt 55) {
-                $q = "Jane"          # seeded / duplicate target
+                $q = "Jane"
             } elseif ($pick -lt 70) {
-                $q = "zzznofind$Index"  # zero results
+                $q = "zzznofind$Index"
             } elseif ($pick -lt 85) {
-                $q = "a"             # refine (short query)
+                $q = "a"
             } else {
-                $q = ""              # empty query
+                $q = ""
             }
             $uri = if ([string]::IsNullOrEmpty($q)) { "$Rest/search" } else { "$Rest/search?q=$([uri]::EscapeDataString($q))" }
             try {
@@ -66,13 +66,12 @@ $workerScript = {
             } catch { }
             return "get"
         }
-        if ($roll -lt 74) {
-            # Dashboard 12 — app login / logout (≠ WildFly mgmt auth)
+        if ($roll -lt 66) {
+            # Dashboard 12 — app login / logout
             $auth = "$BaseUrl/rest/auth"
             $pick = Get-Random -Maximum 100
             $session = New-Object Microsoft.PowerShell.Commands.WebRequestSession
-            if ($pick -lt 55) {
-                # Successful login (seeded John) — often followed by logout
+            if ($pick -lt 50) {
                 $body = @{ email = "john.smith@mailinator.com"; password = "demo" } | ConvertTo-Json -Compress
                 try {
                     Invoke-WebRequest -Uri "$auth/login" -Method POST -Body $body -ContentType "application/json; charset=utf-8" -WebSession $session -UseBasicParsing -TimeoutSec 10 | Out-Null
@@ -82,22 +81,90 @@ $workerScript = {
                 } catch { }
                 return "get"
             }
-            if ($pick -lt 80) {
-                # Bad password
+            if ($pick -lt 70) {
                 $body = @{ email = "john.smith@mailinator.com"; password = "wrong-$Index" } | ConvertTo-Json -Compress
                 try {
                     Invoke-WebRequest -Uri "$auth/login" -Method POST -Body $body -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
                 } catch { }
                 return "fail"
             }
-            # Unknown user
-            $body = @{ email = "nobody-$Index@example.com"; password = "demo" } | ConvertTo-Json -Compress
+            if ($pick -lt 85) {
+                # Unknown user
+                $body = @{ email = "nobody-$Index@example.com"; password = "demo" } | ConvertTo-Json -Compress
+                try {
+                    Invoke-WebRequest -Uri "$auth/login" -Method POST -Body $body -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
+                } catch { }
+                return "fail"
+            }
+            # not_activated: register pending user, try login before activate
+            $suffix = -join ((97..122) | Get-Random -Count 6 | ForEach-Object { [char]$_ })
+            $email = "pending-$suffix-$(Get-Random)@example.com"
+            $reg = @{ name = "Load User $suffix"; email = $email; phoneNumber = ("212555{0:D4}" -f (Get-Random -Maximum 10000)) } | ConvertTo-Json -Compress
             try {
-                Invoke-WebRequest -Uri "$auth/login" -Method POST -Body $body -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
+                Invoke-WebRequest -Uri $Rest -Method POST -Body $reg -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
+                $loginBody = @{ email = $email; password = "demo" } | ConvertTo-Json -Compress
+                Invoke-WebRequest -Uri "$auth/login" -Method POST -Body $loginBody -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
             } catch { }
             return "fail"
         }
-        if ($roll -lt 78 -and $DoFailures) {
+        if ($roll -lt 78) {
+            # Dashboard 13 — account activation funnel
+            $auth = "$BaseUrl/rest/auth"
+            $pick = Get-Random -Maximum 100
+            if ($pick -lt 45) {
+                # Register + activate (success); sometimes activate twice (already_activated)
+                $suffix = -join ((97..122) | Get-Random -Count 6 | ForEach-Object { [char]$_ })
+                $reg = @{
+                    name        = "Load User $suffix"
+                    email       = "act-$suffix-$(Get-Random)@example.com"
+                    phoneNumber = ("212555{0:D4}" -f (Get-Random -Maximum 10000))
+                } | ConvertTo-Json -Compress
+                try {
+                    $resp = Invoke-WebRequest -Uri $Rest -Method POST -Body $reg -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10
+                    $json = $resp.Content | ConvertFrom-Json
+                    $tok = $json.activationToken
+                    if ($tok) {
+                        $ab = @{ token = $tok } | ConvertTo-Json -Compress
+                        Invoke-WebRequest -Uri "$auth/activate" -Method POST -Body $ab -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
+                        if ((Get-Random -Maximum 100) -lt 35) {
+                            try {
+                                Invoke-WebRequest -Uri "$auth/activate" -Method POST -Body $ab -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
+                            } catch { }
+                        }
+                    }
+                    return "ok"
+                } catch { return "fail" }
+            }
+            if ($pick -lt 70) {
+                # invalid_token
+                $ab = @{ token = "badtoken$Index$(Get-Random)" } | ConvertTo-Json -Compress
+                try {
+                    Invoke-WebRequest -Uri "$auth/activate" -Method POST -Body $ab -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
+                } catch { }
+                return "fail"
+            }
+            # expired: register → force expire → activate
+            $suffix = -join ((97..122) | Get-Random -Count 6 | ForEach-Object { [char]$_ })
+            $reg = @{
+                name        = "Load User $suffix"
+                email       = "exp-$suffix-$(Get-Random)@example.com"
+                phoneNumber = ("212555{0:D4}" -f (Get-Random -Maximum 10000))
+            } | ConvertTo-Json -Compress
+            try {
+                $resp = Invoke-WebRequest -Uri $Rest -Method POST -Body $reg -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10
+                $json = $resp.Content | ConvertFrom-Json
+                $tok = $json.activationToken
+                if ($tok) {
+                    $ab = @{ token = $tok } | ConvertTo-Json -Compress
+                    Invoke-WebRequest -Uri "$auth/activation/expire" -Method POST -Body $ab -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
+                    try {
+                        Invoke-WebRequest -Uri "$auth/activate" -Method POST -Body $ab -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
+                    } catch { }
+                }
+            } catch { }
+            return "fail"
+        }
+        if ($roll -lt 82 -and $DoFailures) {
             # Bad name (digits) → Bean Validation Pattern on name
             $body = @{ name = "Bad123"; email = "bad-name-$Index@example.com"; phoneNumber = "2125551234" } | ConvertTo-Json -Compress
             try {
@@ -105,7 +172,7 @@ $workerScript = {
                 return "ok"
             } catch { return "fail" }
         }
-        if ($roll -lt 81 -and $DoFailures) {
+        if ($roll -lt 85 -and $DoFailures) {
             # Bad email → Email constraint
             $suffix = -join ((97..122) | Get-Random -Count 5 | ForEach-Object { [char]$_ })
             $body = @{ name = "Bad Email $suffix"; email = "not-an-email"; phoneNumber = "2125559999" } | ConvertTo-Json -Compress
@@ -114,7 +181,7 @@ $workerScript = {
                 return "ok"
             } catch { return "fail" }
         }
-        if ($roll -lt 85 -and $DoFailures) {
+        if ($roll -lt 88 -and $DoFailures) {
             # Short / non-digit phone → Size + Digits on phoneNumber
             $suffix = -join ((97..122) | Get-Random -Count 5 | ForEach-Object { [char]$_ })
             $body = @{ name = "Bad Phone $suffix"; email = "bad-phone-$suffix@example.com"; phoneNumber = "12ab" } | ConvertTo-Json -Compress
@@ -123,7 +190,7 @@ $workerScript = {
                 return "ok"
             } catch { return "fail" }
         }
-        if ($roll -lt 90 -and $DoFailures) {
+        if ($roll -lt 92 -and $DoFailures) {
             # Duplicate email (seeded Jane Doe)
             $body = @{ name = "Jane Doe"; email = "jane.doe@mailinator.com"; phoneNumber = "2125551234" } | ConvertTo-Json -Compress
             try {
@@ -131,7 +198,7 @@ $workerScript = {
                 return "ok"
             } catch { return "fail" }
         }
-        # Successful registration — name must NOT contain digits
+        # Successful registration — often activate so pending backlog stays bounded
         $suffix = -join ((97..122) | Get-Random -Count 6 | ForEach-Object { [char]$_ })
         $phone = "212555{0:D4}" -f (Get-Random -Maximum 10000)
         $body = @{
@@ -140,7 +207,18 @@ $workerScript = {
             phoneNumber = $phone
         } | ConvertTo-Json -Compress
         $resp = Invoke-WebRequest -Uri $Rest -Method POST -Body $body -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10
-        if ($resp.StatusCode -ge 200 -and $resp.StatusCode -lt 300) { return "ok" }
+        if ($resp.StatusCode -ge 200 -and $resp.StatusCode -lt 300) {
+            if ((Get-Random -Maximum 100) -lt 75) {
+                try {
+                    $json = $resp.Content | ConvertFrom-Json
+                    if ($json.activationToken) {
+                        $ab = @{ token = $json.activationToken } | ConvertTo-Json -Compress
+                        Invoke-WebRequest -Uri "$BaseUrl/rest/auth/activate" -Method POST -Body $ab -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
+                    }
+                } catch { }
+            }
+            return "ok"
+        }
         return "fail"
     } catch {
         return "fail"
@@ -187,4 +265,4 @@ finally {
 
 Write-Host ""
 Write-Host "Done. total~$n get=$get post_ok=$ok fail=$fail"
-Write-Host "Check: http://localhost:3000/d/auth-sessions  http://localhost:3000/d/search-discovery  http://localhost:3000/d/registration-quality"
+Write-Host "Check: http://localhost:3000/d/account-activation  http://localhost:3000/d/auth-sessions  http://localhost:3000/d/registration-quality"

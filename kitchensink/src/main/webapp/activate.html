@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>kitchensink - Activate</title>
+  <link rel="stylesheet" href="resources/css/screen.css"/>
+</head>
+<body>
+  <div id="container">
+    <div class="app-shell">
+      <div class="app-top">
+        <div class="brand">
+          <div class="brand-name">kitchensink</div>
+          <div class="brand-tag">WildFly demo app - dashboard 13</div>
+        </div>
+        <nav class="app-nav" aria-label="Main">
+          <a href="index.jsf">Register</a>
+          <a class="is-active" href="activate.html">Activate</a>
+          <a href="login.html">Login</a>
+          <a href="search.html">Search</a>
+        </nav>
+      </div>
+
+      <div class="app-body">
+        <div class="app-main" id="content">
+          <h1>Account activation</h1>
+          <p class="lead">After register, paste the activation token. Metrics go to Grafana dashboard <strong>13</strong>.</p>
+
+          <div class="tip">
+            Register via REST returns <code>activationToken</code>.
+            Pending accounts cannot log in (<code>not_activated</code>).
+          </div>
+
+          <div class="panel">
+            <div class="field">
+              <label class="field-label" for="token">Activation token</label>
+              <input id="token" type="text" placeholder="paste token from registration response" autofocus/>
+            </div>
+            <div class="actions">
+              <button id="activate" class="btn-primary" type="button">Activate</button>
+            </div>
+            <p id="status" class="status is-info" role="status">Ready - paste a token and press Activate.</p>
+          </div>
+        </div>
+
+        <div class="app-aside" id="aside">
+          <h3>Outcomes</h3>
+          <ul>
+            <li><strong>success</strong> - pending becomes activated</li>
+            <li><strong>invalid_token</strong> - unknown token</li>
+            <li><strong>expired</strong> - token past TTL</li>
+            <li><strong>already_activated</strong> - activate twice</li>
+          </ul>
+          <p><a href="http://localhost:3000/d/account-activation">Open dashboard 13</a></p>
+        </div>
+      </div>
+
+      <div class="app-footer" id="footer">
+        <p>Demo UI for the monitoring stack.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var token = document.getElementById('token');
+      var status = document.getElementById('status');
+      var base = window.location.pathname.replace(/\/[^/]*$/, '') || '';
+
+      function setStatus(text, kind) {
+        status.textContent = text;
+        status.className = 'status' + (kind ? ' is-' + kind : '');
+      }
+
+      document.getElementById('activate').addEventListener('click', function () {
+        setStatus('Activating...', 'info');
+        fetch(base + '/rest/auth/activate', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: token.value })
+        })
+          .then(function (r) {
+            return r.json().then(function (j) {
+              return { ok: r.ok, status: r.status, body: j };
+            });
+          })
+          .then(function (r) {
+            if (r.ok) {
+              setStatus('Activated member #' + r.body.memberId + ' — you can Login now.', 'ok');
+            } else {
+              setStatus('Activation failed: ' + (r.body.error || ('HTTP ' + r.status)), 'bad');
+            }
+          })
+          .catch(function (e) { setStatus('Activation error: ' + e.message, 'bad'); });
+      });
+
+      token.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') document.getElementById('activate').click();
+      });
+
+      // Prefill from ?token=... (link from registration page)
+      try {
+        var params = new URLSearchParams(window.location.search);
+        var t = params.get('token');
+        if (t) {
+          token.value = t;
+          setStatus('Token loaded from registration link — press Activate.', 'info');
+        }
+      } catch (e) { /* ignore */ }
+    })();
+  </script>
+</body>
+</html>

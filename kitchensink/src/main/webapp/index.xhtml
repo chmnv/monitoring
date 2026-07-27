@@ -9,8 +9,8 @@
         <p class="lead">Create an account. Success and validation failures show on Grafana dashboard <strong>10 Registration Quality</strong>.</p>
 
         <div class="tip">
-            After register, log in with the same email.
-            Password for every account is <strong>demo</strong> (dashboard 12).
+            After register, activate with the token (dashboard 13), then log in.
+            Password for every account is <strong>demo</strong>.
         </div>
 
         <div class="panel">
@@ -42,6 +42,25 @@
                 </div>
             </h:form>
         </div>
+
+        <h:panelGroup layout="block" styleClass="tip" rendered="#{memberController.justRegistered}">
+            <div><strong>Account created (pending activation)</strong></div>
+            <ul class="tip-list">
+                <li><span class="k">Email</span> #{memberController.lastRegisteredEmail}</li>
+                <li><span class="k">Password</span> demo</li>
+                <li><span class="k">Token</span>
+                    <code id="activation-token">#{memberController.lastActivationToken}</code>
+                </li>
+            </ul>
+            <p style="margin:0.65rem 0 0;color:inherit">
+                Next:
+                <a href="#{request.contextPath}/activate.html?token=#{memberController.lastActivationToken}">
+                    Open Activate page with this token
+                </a>
+                → then
+                <a href="#{request.contextPath}/login.html">Login</a>.
+            </p>
+        </h:panelGroup>
 
         <h2>#{bundle.membersHeader}</h2>
         <h:panelGroup rendered="#{empty members}">

@@ -97,8 +97,9 @@ The WAR is **never** committed — it is always built from `./kitchensink` durin
 | 10 | Registration Quality & Validation | `registration-quality` | Field/constraint friction (deep dive) |
 | 11 | Search & Discovery | `search-discovery` | Hit / zero / refine search quality |
 | 12 | Authentication & Sessions | `auth-sessions` | App login outcomes + active sessions |
+| 13 | Account Activation | `account-activation` | Pending → token → activated funnel |
 
-Target for mentor deliverable: **15** (see private notes / roadmap). Current live set: **12**.
+Target for mentor deliverable: **15** (see private notes / roadmap). Current live set: **13**.
 
 ## Application / business metrics
 
@@ -112,10 +113,14 @@ Target for mentor deliverable: **15** (see private notes / roadmap). Current liv
 - `kitchensink_searches_total{outcome}` — search hit / zero / empty / refine / error (dashboard 11)
 - `kitchensink_search_duration_seconds` — search latency histogram
 - `kitchensink_search_results` — result-set size histogram
-- `kitchensink_auth_attempts_total{outcome}` — login success / bad_credentials / unknown_user / error (dashboard 12)
+- `kitchensink_auth_attempts_total{outcome}` — login success / bad_credentials / unknown_user / not_activated / error (dashboard 12)
 - `kitchensink_auth_logouts_total` — application logouts
 - `kitchensink_auth_duration_seconds` — login latency histogram
 - `kitchensink_active_sessions` — authenticated app sessions gauge
+- `kitchensink_activation_attempts_total{outcome}` — activation success / invalid_token / expired / already_activated / error (dashboard 13)
+- `kitchensink_activation_duration_seconds` — activation latency histogram
+- `kitchensink_accounts_pending` — pending (not yet activated) accounts
+- `kitchensink_accounts_activated_total` — successful activations
 - `kitchensink_registration_duration_seconds` — histogram (avg / p95 / p99)
 - `kitchensink_db_operation_duration_seconds{operation}` — JPA/DB op timing
   (`findAll`, `findById`, `findByEmail`, `persist` after flush, `countAll`)
@@ -166,6 +171,7 @@ Open:
 | http://localhost:8080/kitchensink | Application |
 | http://localhost:8080/kitchensink/search.html | Member search (dashboard 11) |
 | http://localhost:8080/kitchensink/login.html | Member login (dashboard 12) |
+| http://localhost:8080/kitchensink/activate.html | Account activation (dashboard 13) |
 | http://localhost:9990 | WildFly Management (`admin` / `admin`) |
 | http://localhost:9404/metrics | JMX Exporter |
 | http://localhost:8080/kitchensink/metrics | Business metrics |

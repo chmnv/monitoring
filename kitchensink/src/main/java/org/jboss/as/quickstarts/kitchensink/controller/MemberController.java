@@ -29,10 +29,6 @@ import org.jboss.as.quickstarts.kitchensink.model.Member;
 import org.jboss.as.quickstarts.kitchensink.service.MemberRegistration;
 import org.jboss.as.quickstarts.kitchensink.util.KitchensinkMessages;
 
-// The @Model stereotype is a convenience mechanism to make this a request-scoped bean that has an
-// EL name
-// Read more about the @Model stereotype in this FAQ:
-// http://www.cdi-spec.org/faq/#accordion6
 @Model
 public class MemberController {
 
@@ -46,22 +42,43 @@ public class MemberController {
     @Named
     private Member newMember;
 
+    /** Shown after a successful registration (dashboard 13). */
+    private String lastActivationToken;
+    private String lastRegisteredEmail;
+
     @PostConstruct
     public void initNewMember() {
         newMember = new Member();
     }
 
+    public String getLastActivationToken() {
+        return lastActivationToken;
+    }
+
+    public String getLastRegisteredEmail() {
+        return lastRegisteredEmail;
+    }
+
+    public boolean isJustRegistered() {
+        return lastActivationToken != null && !lastActivationToken.isBlank();
+    }
+
     public void register() throws Exception {
         AppMetrics.ATTEMPTS.inc();
         try {
-            // Success / duration / members gauge are recorded inside MemberRegistration.
-            memberRegistration.register(newMember);
-            FacesMessage m = new FacesMessage(FacesMessage.SEVERITY_INFO, KitchensinkMessages.MESSAGES.registeredMessage(),
-                    KitchensinkMessages.MESSAGES.registerSuccessfulMessage());
+            String email = newMember.getEmail();
+            String token = memberRegistration.register(newMember);
+            lastRegisteredEmail = email;
+            lastActivationToken = token;
+
+            FacesMessage m = new FacesMessage(FacesMessage.SEVERITY_INFO,
+                    "Registered — account is PENDING",
+                    "Copy the activation token below, open Activate, then log in with password demo.");
             facesContext.addMessage(null, m);
             initNewMember();
         } catch (Exception e) {
-            // JSF path failure (e.g. unique constraint from the DB).
+            lastActivationToken = null;
+            lastRegisteredEmail = null;
             AppMetrics.FAILURES.labelValues("error").inc();
             String errorMessage = getRootErrorMessage(e);
             FacesMessage m = new FacesMessage(FacesMessage.SEVERITY_ERROR, errorMessage,
@@ -71,22 +88,15 @@ public class MemberController {
     }
 
     private String getRootErrorMessage(Exception e) {
-        // Default to general error message that registration failed.
         String errorMessage = KitchensinkMessages.MESSAGES.defaultErrorMessage();
         if (e == null) {
-            // This shouldn't happen, but return the default messages
             return errorMessage;
         }
-
-        // Start with the exception and recurse to find the root cause
         Throwable t = e;
         while (t != null) {
-            // Get the message from the Throwable class instance
             errorMessage = t.getLocalizedMessage();
             t = t.getCause();
         }
-        // This is the root cause message
         return errorMessage;
     }
-
 }

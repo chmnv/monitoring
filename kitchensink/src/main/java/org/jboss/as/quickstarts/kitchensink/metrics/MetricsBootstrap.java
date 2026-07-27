@@ -1,7 +1,5 @@
 /*
- * Seeds the kitchensink_members gauge from the database once the app starts, so
- * Prometheus sees the real member count immediately (not only after the first
- * registration increments the gauge).
+ * Seeds gauges / labeled series so dashboards are never empty after restart.
  */
 package org.jboss.as.quickstarts.kitchensink.metrics;
 
@@ -9,9 +7,11 @@ import jakarta.annotation.PostConstruct;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import java.util.logging.Logger;
 
 import org.jboss.as.quickstarts.kitchensink.data.MemberRepository;
+import org.jboss.as.quickstarts.kitchensink.model.AuthAccount;
 
 @Singleton
 @Startup
@@ -22,6 +22,9 @@ public class MetricsBootstrap {
 
     @Inject
     private MemberRepository repository;
+
+    @Inject
+    private EntityManager em;
 
     @PostConstruct
     void seedMemberGauge() {
@@ -46,11 +49,26 @@ public class MetricsBootstrap {
             AppMetrics.SEARCH.labelValues(outcome).inc(0);
         }
         // Auth outcomes for dashboard 12.
-        for (String outcome : new String[] { "success", "bad_credentials", "unknown_user", "error" }) {
+        for (String outcome : new String[] {
+                "success", "bad_credentials", "unknown_user", "not_activated", "error"
+        }) {
             AppMetrics.AUTH_ATTEMPTS.labelValues(outcome).inc(0);
         }
         AppMetrics.AUTH_LOGOUTS.inc(0);
         AppMetrics.ACTIVE_SESSIONS.set(0);
-        log.info("Seeded kitchensink_members gauge = " + count + " and failure/search/auth series");
+        // Activation outcomes for dashboard 13.
+        for (String outcome : new String[] {
+                "success", "invalid_token", "expired", "already_activated", "error"
+        }) {
+            AppMetrics.ACTIVATION_ATTEMPTS.labelValues(outcome).inc(0);
+        }
+        AppMetrics.ACCOUNTS_ACTIVATED.inc(0);
+        long pending = em.createQuery(
+                        "select count(a) from AuthAccount a where a.status = :s", Long.class)
+                .setParameter("s", AuthAccount.STATUS_PENDING)
+                .getSingleResult();
+        AppMetrics.ACCOUNTS_PENDING.set(pending);
+        log.info("Seeded kitchensink_members=" + count + " pending=" + pending
+                + " and failure/search/auth/activation series");
     }
 }

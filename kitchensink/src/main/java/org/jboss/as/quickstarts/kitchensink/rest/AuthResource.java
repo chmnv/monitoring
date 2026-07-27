@@ -23,10 +23,11 @@ import org.jboss.as.quickstarts.kitchensink.data.MemberRepository;
 import org.jboss.as.quickstarts.kitchensink.metrics.AppMetrics;
 import org.jboss.as.quickstarts.kitchensink.model.AuthAccount;
 import org.jboss.as.quickstarts.kitchensink.model.Member;
+import org.jboss.as.quickstarts.kitchensink.service.AccountActivation;
 
 /**
- * Application login / logout / session for dashboard 12.
- * Uses HTTP sessions — distinct from WildFly management audit (dashboard 08).
+ * Application login / logout / session (dashboard 12) and account activation (dashboard 13).
+ * Distinct from WildFly management audit (dashboard 08).
  */
 @Path("/auth")
 @RequestScoped
@@ -45,6 +46,9 @@ public class AuthResource {
 
     @Inject
     private EntityManager em;
+
+    @Inject
+    private AccountActivation activation;
 
     @POST
     @Path("/login")
@@ -84,9 +88,15 @@ public class AuthResource {
                         .build();
             }
 
+            if (account != null && !account.isActivated()) {
+                AppMetrics.AUTH_ATTEMPTS.labelValues("not_activated").inc();
+                return Response.status(Response.Status.FORBIDDEN)
+                        .entity(Map.of("error", "not_activated", "status", account.getStatus()))
+                        .build();
+            }
+
             HttpSession previous = request.getSession(false);
             if (previous != null) {
-                // Re-login: destroy old session so listener adjusts the gauge.
                 previous.invalidate();
             }
 
@@ -121,7 +131,6 @@ public class AuthResource {
     public Response logout(@Context HttpServletRequest request) {
         HttpSession session = request.getSession(false);
         if (session != null) {
-            // Gauge decrement happens in AuthSessionListener on destroy.
             session.invalidate();
             AppMetrics.AUTH_LOGOUTS.inc();
         }
@@ -144,5 +153,83 @@ public class AuthResource {
         body.put("email", session.getAttribute(SESSION_EMAIL));
         body.put("loginAt", session.getAttribute(SESSION_LOGIN_AT));
         return Response.ok(body).build();
+    }
+
+    /**
+     * Activate a pending account with the token returned at registration (dashboard 13).
+     */
+    @POST
+    @Path("/activate")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response activate(ActivateRequest body) {
+        long start = System.nanoTime();
+        try {
+            if (body == null || body.getToken() == null || body.getToken().isBlank()) {
+                AppMetrics.ACTIVATION_ATTEMPTS.labelValues("error").inc();
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", "token required"))
+                        .build();
+            }
+            AccountActivation.Result result = activation.activate(body.getToken().trim());
+            switch (result.outcome) {
+                case SUCCESS:
+                    AppMetrics.ACTIVATION_ATTEMPTS.labelValues("success").inc();
+                    Map<String, Object> ok = new HashMap<>();
+                    ok.put("status", "activated");
+                    ok.put("memberId", result.memberId);
+                    return Response.ok(ok).build();
+                case INVALID_TOKEN:
+                    AppMetrics.ACTIVATION_ATTEMPTS.labelValues("invalid_token").inc();
+                    return Response.status(Response.Status.NOT_FOUND)
+                            .entity(Map.of("error", "invalid_token"))
+                            .build();
+                case EXPIRED:
+                    AppMetrics.ACTIVATION_ATTEMPTS.labelValues("expired").inc();
+                    return Response.status(Response.Status.GONE)
+                            .entity(Map.of("error", "expired"))
+                            .build();
+                case ALREADY_ACTIVATED:
+                    AppMetrics.ACTIVATION_ATTEMPTS.labelValues("already_activated").inc();
+                    return Response.status(Response.Status.CONFLICT)
+                            .entity(Map.of("error", "already_activated"))
+                            .build();
+                default:
+                    AppMetrics.ACTIVATION_ATTEMPTS.labelValues("error").inc();
+                    return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                            .entity(Map.of("error", "error"))
+                            .build();
+            }
+        } catch (Exception e) {
+            log.warning("Activation failed: " + e.getMessage());
+            AppMetrics.ACTIVATION_ATTEMPTS.labelValues("error").inc();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", e.getMessage() == null ? "error" : e.getMessage()))
+                    .build();
+        } finally {
+            AppMetrics.ACTIVATION_DURATION.observe((System.nanoTime() - start) / 1_000_000_000.0);
+        }
+    }
+
+    /**
+     * Demo-only helper: force a pending token to expire so load traffic can hit outcome=expired.
+     */
+    @POST
+    @Path("/activation/expire")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response expireToken(ActivateRequest body) {
+        if (body == null || body.getToken() == null || body.getToken().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Map.of("error", "token required"))
+                    .build();
+        }
+        AccountActivation.Result result = activation.expireForDemo(body.getToken().trim());
+        if (result.outcome == AccountActivation.Outcome.INVALID_TOKEN) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(Map.of("error", "invalid_token"))
+                    .build();
+        }
+        return Response.ok(Map.of("status", "expired_for_demo", "memberId", result.memberId)).build();
     }
 }

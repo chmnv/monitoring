@@ -138,10 +138,15 @@ public class MemberResourceRESTService {
             // Validates member using bean validation
             validateMember(member);
 
-            registration.register(member);
+            String activationToken = registration.register(member);
 
-            // Create an "ok" response
-            builder = Response.ok();
+            Map<String, Object> ok = new HashMap<>();
+            ok.put("id", member.getId());
+            ok.put("email", member.getEmail());
+            ok.put("name", member.getName());
+            ok.put("status", "pending");
+            ok.put("activationToken", activationToken);
+            builder = Response.ok(ok);
         } catch (ConstraintViolationException ce) {
             // RED "errors" — bean validation (name/email/phone constraints).
             AppMetrics.FAILURES.labelValues("validation").inc();

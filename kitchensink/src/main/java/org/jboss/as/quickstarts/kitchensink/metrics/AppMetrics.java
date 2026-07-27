@@ -123,6 +123,33 @@ public final class AppMetrics {
             .help("Active application login sessions")
             .register();
 
+    /**
+     * Account activation attempts for dashboard 13 (post-register token funnel).
+     * Outcomes: success, invalid_token, expired, already_activated, error.
+     */
+    public static final Counter ACTIVATION_ATTEMPTS = Counter.builder()
+            .name("kitchensink_activation_attempts")
+            .help("Account activation attempts by outcome")
+            .labelNames("outcome")
+            .register();
+
+    public static final Histogram ACTIVATION_DURATION = Histogram.builder()
+            .name("kitchensink_activation_duration_seconds")
+            .help("Time spent handling an activation request, in seconds")
+            .register();
+
+    /** Accounts still pending activation (registered, not yet activated). */
+    public static final Gauge ACCOUNTS_PENDING = Gauge.builder()
+            .name("kitchensink_accounts_pending")
+            .help("Accounts awaiting email/token activation")
+            .register();
+
+    /** Successful activations (lifetime counter). */
+    public static final Counter ACCOUNTS_ACTIVATED = Counter.builder()
+            .name("kitchensink_accounts_activated")
+            .help("Accounts that completed activation")
+            .register();
+
     private AppMetrics() {
         // utility holder — not instantiable
     }
