@@ -31,6 +31,26 @@ public final class AppMetrics {
             .labelNames("reason")
             .register();
 
+    /**
+     * Every POST /rest/members attempt (success or failure). Used with REGISTRATIONS /
+     * FAILURES for success-rate and "friction" views on dashboard 10.
+     */
+    public static final Counter ATTEMPTS = Counter.builder()
+            .name("kitchensink_registration_attempts")
+            .help("Total member registration attempts (success + failure)")
+            .register();
+
+    /**
+     * Bean-validation / uniqueness failures by field and constraint type.
+     * Complements FAILURES{reason=validation} with a per-field deep dive (dashboard 10).
+     * Does not replace or rename the existing reason counter.
+     */
+    public static final Counter FIELD_FAILURES = Counter.builder()
+            .name("kitchensink_registration_field_failures")
+            .help("Registration validation failures by field and constraint")
+            .labelNames("field", "constraint")
+            .register();
+
     /** Time to persist a registration — RED "duration" (avg + p95/p99 from buckets). */
     public static final Histogram DURATION = Histogram.builder()
             .name("kitchensink_registration_duration_seconds")

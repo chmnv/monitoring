@@ -46,14 +46,34 @@ $workerScript = {
             } catch { }
             return "get"
         }
-        if ($roll -lt 75 -and $DoFailures) {
-            $body = @{ name = "Bad123"; email = "bad$Index@example.com"; phoneNumber = "123" } | ConvertTo-Json -Compress
+        if ($roll -lt 70 -and $DoFailures) {
+            # Bad name (digits) → Bean Validation Pattern on name
+            $body = @{ name = "Bad123"; email = "bad-name-$Index@example.com"; phoneNumber = "2125551234" } | ConvertTo-Json -Compress
             try {
                 Invoke-WebRequest -Uri $Rest -Method POST -Body $body -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
                 return "ok"
             } catch { return "fail" }
         }
-        if ($roll -lt 82 -and $DoFailures) {
+        if ($roll -lt 75 -and $DoFailures) {
+            # Bad email → Email constraint
+            $suffix = -join ((97..122) | Get-Random -Count 5 | ForEach-Object { [char]$_ })
+            $body = @{ name = "Bad Email $suffix"; email = "not-an-email"; phoneNumber = "2125559999" } | ConvertTo-Json -Compress
+            try {
+                Invoke-WebRequest -Uri $Rest -Method POST -Body $body -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
+                return "ok"
+            } catch { return "fail" }
+        }
+        if ($roll -lt 79 -and $DoFailures) {
+            # Short / non-digit phone → Size + Digits on phoneNumber
+            $suffix = -join ((97..122) | Get-Random -Count 5 | ForEach-Object { [char]$_ })
+            $body = @{ name = "Bad Phone $suffix"; email = "bad-phone-$suffix@example.com"; phoneNumber = "12ab" } | ConvertTo-Json -Compress
+            try {
+                Invoke-WebRequest -Uri $Rest -Method POST -Body $body -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
+                return "ok"
+            } catch { return "fail" }
+        }
+        if ($roll -lt 84 -and $DoFailures) {
+            # Duplicate email (seeded Jane Doe)
             $body = @{ name = "Jane Doe"; email = "jane.doe@mailinator.com"; phoneNumber = "2125551234" } | ConvertTo-Json -Compress
             try {
                 Invoke-WebRequest -Uri $Rest -Method POST -Body $body -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
@@ -116,4 +136,4 @@ finally {
 
 Write-Host ""
 Write-Host "Done. total~$n get=$get post_ok=$ok fail=$fail"
-Write-Host "Check: http://localhost:3000/d/wildfly-http-db  http://localhost:3000/d/kitchensink-app  http://localhost:3000/d/wildfly-db"
+Write-Host "Check: http://localhost:3000/d/registration-quality  http://localhost:3000/d/kitchensink-app  http://localhost:3000/d/wildfly-http-db"

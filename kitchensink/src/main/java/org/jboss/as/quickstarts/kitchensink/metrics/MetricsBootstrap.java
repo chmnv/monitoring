@@ -32,6 +32,15 @@ public class MetricsBootstrap {
         AppMetrics.FAILURES.labelValues("validation").inc(0);
         AppMetrics.FAILURES.labelValues("duplicate_email").inc(0);
         AppMetrics.FAILURES.labelValues("error").inc(0);
-        log.info("Seeded kitchensink_members gauge = " + count + " and failure reason series");
+        // Field / constraint series for dashboard 10 (Registration Quality).
+        String[][] fieldSeeds = {
+                { "name", "Pattern" }, { "name", "Size" }, { "name", "NotNull" },
+                { "email", "Email" }, { "email", "NotEmpty" }, { "email", "NotNull" }, { "email", "Unique" },
+                { "phoneNumber", "Size" }, { "phoneNumber", "Digits" }, { "phoneNumber", "NotNull" }
+        };
+        for (String[] pair : fieldSeeds) {
+            AppMetrics.FIELD_FAILURES.labelValues(pair[0], pair[1]).inc(0);
+        }
+        log.info("Seeded kitchensink_members gauge = " + count + " and failure reason/field series");
     }
 }

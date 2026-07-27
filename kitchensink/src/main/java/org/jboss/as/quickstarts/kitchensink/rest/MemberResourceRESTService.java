@@ -93,6 +93,7 @@ public class MemberResourceRESTService {
     public Response createMember(Member member) {
 
         Response.ResponseBuilder builder = null;
+        AppMetrics.ATTEMPTS.inc();
 
         try {
             // Validates member using bean validation
@@ -105,10 +106,12 @@ public class MemberResourceRESTService {
         } catch (ConstraintViolationException ce) {
             // RED "errors" — bean validation (name/email/phone constraints).
             AppMetrics.FAILURES.labelValues("validation").inc();
+            recordFieldViolations(ce.getConstraintViolations());
             builder = createViolationResponse(ce.getConstraintViolations());
         } catch (ValidationException e) {
             // Duplicate email is a business rule, not a Bean Validation constraint.
             AppMetrics.FAILURES.labelValues("duplicate_email").inc();
+            AppMetrics.FIELD_FAILURES.labelValues("email", "Unique").inc();
             Map<String, String> responseObj = new HashMap<>();
             responseObj.put("email", "Email taken");
             builder = Response.status(Response.Status.CONFLICT).entity(responseObj);
@@ -120,6 +123,21 @@ public class MemberResourceRESTService {
         }
 
         return builder.build();
+    }
+
+    /** Increment per-field / per-constraint counters for dashboard 10 deep-dive. */
+    private void recordFieldViolations(Set<? extends ConstraintViolation<?>> violations) {
+        for (ConstraintViolation<?> violation : violations) {
+            String field = violation.getPropertyPath().toString();
+            if (field == null || field.isEmpty()) {
+                field = "unknown";
+            }
+            String constraint = violation.getConstraintDescriptor()
+                    .getAnnotation()
+                    .annotationType()
+                    .getSimpleName();
+            AppMetrics.FIELD_FAILURES.labelValues(field, constraint).inc();
+        }
     }
 
     /**

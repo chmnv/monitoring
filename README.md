@@ -89,8 +89,9 @@ The WAR is **never** committed — it is always built from `./kitchensink` durin
 | 07 | WildFly Logs | `wildfly-logs` | Log volume, levels, live stream |
 | 08 | WildFly Security & Audit | `wildfly-security` | Management audit trail |
 | 09 | System Health & SLA | `system-health` | SLA, error budget, SLOs |
+| 10 | Registration Quality & Validation | `registration-quality` | Field/constraint friction (deep dive) |
 
-Target for mentor deliverable: **15** (see private notes / roadmap). Current live set: **9**.
+Target for mentor deliverable: **15** (see private notes / roadmap). Current live set: **10**.
 
 ## Application / business metrics
 
@@ -98,7 +99,9 @@ Target for mentor deliverable: **15** (see private notes / roadmap). Current liv
 `kitchensink-app`):
 
 - `kitchensink_registrations_total` — successful registrations
+- `kitchensink_registration_attempts_total` — every POST attempt (success + failure)
 - `kitchensink_registration_failures_total{reason=...}` — validation / duplicate_email / error
+- `kitchensink_registration_field_failures_total{field,constraint}` — per-field deep dive (dashboard 10)
 - `kitchensink_registration_duration_seconds` — histogram (avg / p95 / p99)
 - `kitchensink_db_operation_duration_seconds{operation}` — JPA/DB op timing
   (`findAll`, `findById`, `findByEmail`, `persist` after flush, `countAll`)
@@ -212,7 +215,7 @@ docker start wildfly
 - [x] WildFly image (multi-stage, JMX Exporter, management, audit log)
 - [x] kitchensink vendored in-repo + business metrics endpoint
 - [x] Prometheus (JMX + native `:9990` + kitchensink-app + windows)
-- [x] Grafana datasources + dashboards-as-code (01–09)
+- [x] Grafana datasources + dashboards-as-code (01–10)
 - [x] Loki + Promtail (server.log + audit-log)
 - [x] Email alerts (Gmail SMTP, rules as code)
 - [x] Telegram + Jira tickets (`jira-bridge` webhook)

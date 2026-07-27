@@ -52,6 +52,7 @@ public class MemberController {
     }
 
     public void register() throws Exception {
+        AppMetrics.ATTEMPTS.inc();
         try {
             // Success / duration / members gauge are recorded inside MemberRegistration.
             memberRegistration.register(newMember);
