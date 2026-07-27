@@ -1,6 +1,9 @@
-# Alerting contact point: where notifications are sent.
-# The email address is injected from the ALERT_EMAIL_TO environment variable
-# ($__env{...}) so no personal address is committed to the repo.
+# Alerting contact points (provisioned).
+# Secrets come from the container environment ($__env{...}) — never commit real tokens.
+#
+# NOTE: TELEGRAM chat id MUST be a YAML string. Grafana's $__env expansion turns
+# a numeric id into a JSON number and crashes provisioning (chatid must be string).
+# Put your chat id below in quotes; keep the bot token in .env only.
 apiVersion: 1
 
 contactPoints:
@@ -12,3 +15,13 @@ contactPoints:
         settings:
           addresses: $__env{ALERT_EMAIL_TO}
           singleEmail: true
+
+  - orgId: 1
+    name: telegram
+    receivers:
+      - uid: telegram_recv
+        type: telegram
+        settings:
+          bottoken: $__env{TELEGRAM_BOT_TOKEN}
+          chatid: "965378376"
+          disable_web_page_preview: true

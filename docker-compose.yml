@@ -106,8 +106,10 @@ services:
       GF_SMTP_FROM_NAME: "Grafana Alerts"
       # Gmail uses STARTTLS on 587; upgrade the plaintext connection to TLS.
       GF_SMTP_STARTTLS_POLICY: OpportunisticStartTLS
-      # Exposed to the alerting provisioning files via $__env{ALERT_EMAIL_TO}.
+      # Exposed to alerting provisioning via $__env{...}.
       ALERT_EMAIL_TO: ${ALERT_EMAIL_TO}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID}
     volumes:
       # Provisioning mounted read-only: Grafana reads datasource + dashboard
       # provider config on boot.

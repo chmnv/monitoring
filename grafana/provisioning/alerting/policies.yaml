@@ -1,11 +1,11 @@
-# Notification policy tree (root). Routes every firing alert to the email
-# contact point. Grouping keeps related alerts in one email; repeat_interval
-# limits how often an unresolved alert is re-sent.
+# Notification policy tree (root).
+# Default route → Telegram (messenger). Email contact point stays available
+# if you add a child policy later or change receiver back to email-admin.
 apiVersion: 1
 
 policies:
   - orgId: 1
-    receiver: email-admin
+    receiver: telegram
     group_by:
       - grafana_folder
       - alertname
