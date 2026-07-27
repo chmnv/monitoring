@@ -16,6 +16,12 @@ contactPoints:
           addresses: $__env{ALERT_EMAIL_TO}
           singleEmail: true
 
+  # Dual channel for mentor demo: Telegram notify + Jira ticket via bridge.
+  # Native Grafana "jira" notifier hits removed /rest/api/3/search (HTTP 410)
+  # on current Jira Cloud — jira-bridge creates issues with /rest/api/3/issue.
+  # IMPORTANT: if you previously provisioned uid jira_recv, delete it via API
+  # (Grafana does not remove omitted receiver UIDs on re-provision):
+  #   DELETE /api/v1/provisioning/contact-points/jira_recv
   - orgId: 1
     name: telegram
     receivers:
@@ -25,3 +31,9 @@ contactPoints:
           bottoken: $__env{TELEGRAM_BOT_TOKEN}
           chatid: "965378376"
           disable_web_page_preview: true
+      - uid: jira_webhook_recv
+        type: webhook
+        disableResolveMessage: true
+        settings:
+          url: http://jira-bridge:8080/webhook
+          httpMethod: POST

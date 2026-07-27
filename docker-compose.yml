@@ -125,6 +125,8 @@ services:
     depends_on:
       prometheus:
         condition: service_healthy   # datasource target must be up first
+      jira-bridge:
+        condition: service_healthy
     healthcheck:
       # curl ships in the Grafana image; /api/health is Grafana's built-in probe.
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
@@ -177,6 +179,31 @@ services:
     depends_on:
       loki:
         condition: service_healthy   # don't ship before Loki can accept pushes
+
+  # ---------------------------------------------------------------------------
+  # jira-bridge — Grafana webhook → Jira Cloud issue create.
+  # Works around Grafana 11.6 native Jira notifier (410 on removed /search API).
+  # ---------------------------------------------------------------------------
+  jira-bridge:
+    build: ./jira-bridge
+    image: monitoring-jira-bridge:1.0
+    container_name: jira-bridge
+    restart: unless-stopped
+    environment:
+      JIRA_BASE_URL: ${JIRA_BASE_URL}
+      JIRA_EMAIL: ${JIRA_EMAIL}
+      JIRA_API_TOKEN: ${JIRA_API_TOKEN}
+      JIRA_PROJECT_KEY: ${JIRA_PROJECT_KEY}
+      JIRA_ISSUE_TYPE: ${JIRA_ISSUE_TYPE:-Task}
+      JIRA_ISSUE_TYPE_ID: ${JIRA_ISSUE_TYPE_ID:-}
+    networks:
+      - monitoring
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
 # Host-level metrics come from windows_exporter, which runs natively on the
 # Windows host (NOT in Docker) and is scraped by Prometheus via

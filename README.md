@@ -114,8 +114,9 @@ Provisioned under `grafana/provisioning/alerting/`:
 | High Host Memory     | RAM used > 93% for 5m             | warning  |
 | Disk C Almost Full   | C: used > 90% for 5m              | warning  |
 
-SMTP is wired via `.env` (see `smtp.example.env`). Contact point + notification policy
-are provisioned — no manual UI setup required.
+SMTP / Telegram / Jira are wired via `.env` (see `smtp.example.env`). Contact point
+`telegram` notifies Telegram and posts a webhook to `jira-bridge`, which creates a
+Jira Cloud issue (native Grafana Jira notifier hits a removed Atlassian search API).
 
 ## Prerequisites
 
@@ -123,6 +124,7 @@ are provisioned — no manual UI setup required.
 - **windows_exporter** listening on the host at `:9182` (for the Windows Host dashboard)
 - For email alerts: Gmail + [App Password](https://myaccount.google.com/apppasswords)
   (2-Step Verification must be enabled)
+- For Telegram + Jira: bot token / chat id + Atlassian API token (see `smtp.example.env`)
 
 ## Quick start
 
@@ -200,7 +202,7 @@ docker compose up -d --build wildfly
 # Business metrics: register + force a validation failure
 # then open http://localhost:3000/d/kitchensink-app
 
-# Email alert: stop WildFly → FIRING mail; start → RESOLVED
+# Alert demo: stop WildFly → Telegram + Jira ticket; start → RESOLVED (TG)
 docker stop wildfly
 docker start wildfly
 ```
@@ -213,6 +215,7 @@ docker start wildfly
 - [x] Grafana datasources + dashboards-as-code (01–09)
 - [x] Loki + Promtail (server.log + audit-log)
 - [x] Email alerts (Gmail SMTP, rules as code)
+- [x] Telegram + Jira tickets (`jira-bridge` webhook)
 - [x] H2 / Database & Query Timing + System Health & SLA
 - [x] JMX cardinality tighten (DefaultExports only)
 - [ ] Optional report generation / presentation polish
