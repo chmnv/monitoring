@@ -167,7 +167,7 @@
       },
       "pluginVersion": "11.6.1",
       "targets": [
-        { "editorMode": "code", "expr": "100 * (1 - sum(rate(wildfly_undertow_error_count_total{job=\"wildfly-management\"}[5m])) / clamp_min(sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])), 0.0001))", "legendFormat": "HTTP OK %", "range": true, "refId": "A" }
+        { "editorMode": "code", "expr": "100 * (1 - sum(rate(wildfly_undertow_error_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])) / clamp_min(sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])), 0.0001))", "legendFormat": "HTTP OK %", "range": true, "refId": "A" }
       ],
       "title": "HTTP Success (5m)",
       "type": "stat"
@@ -400,7 +400,7 @@
       },
       "pluginVersion": "11.6.1",
       "targets": [
-        { "editorMode": "code", "expr": "100 * sum(rate(wildfly_undertow_error_count_total{job=\"wildfly-management\"}[5m])) / clamp_min(sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])), 0.0001)", "legendFormat": "error %", "range": true, "refId": "A" }
+        { "editorMode": "code", "expr": "100 * sum(rate(wildfly_undertow_error_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])) / clamp_min(sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])), 0.0001)", "legendFormat": "error %", "range": true, "refId": "A" }
       ],
       "title": "Error Rate vs SLO (1%)",
       "type": "timeseries"

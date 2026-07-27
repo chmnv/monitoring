@@ -10,7 +10,8 @@
  * http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+ * implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
@@ -19,10 +20,14 @@ package org.jboss.as.quickstarts.kitchensink.service;
 import org.jboss.as.quickstarts.kitchensink.metrics.AppMetrics;
 import org.jboss.as.quickstarts.kitchensink.model.Member;
 
+import jakarta.annotation.Resource;
 import jakarta.ejb.Stateless;
 import jakarta.enterprise.event.Event;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
+import jakarta.transaction.Status;
+import jakarta.transaction.Synchronization;
+import jakarta.transaction.TransactionSynchronizationRegistry;
 import java.util.logging.Logger;
 
 // The @Stateless annotation eliminates the need for manual transaction demarcation
@@ -38,18 +43,42 @@ public class MemberRegistration {
     @Inject
     private Event<Member> memberEventSrc;
 
+    /**
+     * Used so success counters / gauges move only after a committed TX — not after
+     * persist() while rollback is still possible.
+     */
+    @Resource
+    private TransactionSynchronizationRegistry txSync;
+
     public void register(Member member) throws Exception {
-        // RED "duration" — time to persist one successful registration.
         long startNanos = System.nanoTime();
         log.info("Registering " + member.getName());
         em.persist(member);
+        // Force the INSERT now so DB_OPERATION{persist} includes real SQL, not only
+        // "add to persistence context" time (INSERT normally waits until flush/commit).
+        em.flush();
         memberEventSrc.fire(member);
-        double seconds = (System.nanoTime() - startNanos) / 1_000_000_000.0;
-        // Observe only on success so failed attempts do not skew latency percentiles.
-        AppMetrics.DURATION.observe(seconds);
-        AppMetrics.DB_OPERATION.labelValues("persist").observe(seconds);
-        // RED "rate" + business KPI (member inventory).
-        AppMetrics.REGISTRATIONS.inc();
-        AppMetrics.MEMBERS.inc();
+
+        final double persistSeconds = (System.nanoTime() - startNanos) / 1_000_000_000.0;
+        AppMetrics.DB_OPERATION.labelValues("persist").observe(persistSeconds);
+
+        // Business success metrics only after commit succeeds.
+        txSync.registerInterposedSynchronization(new Synchronization() {
+            @Override
+            public void beforeCompletion() {
+                // no-op
+            }
+
+            @Override
+            public void afterCompletion(int status) {
+                if (status != Status.STATUS_COMMITTED) {
+                    return;
+                }
+                double totalSeconds = (System.nanoTime() - startNanos) / 1_000_000_000.0;
+                AppMetrics.DURATION.observe(totalSeconds);
+                AppMetrics.REGISTRATIONS.inc();
+                AppMetrics.MEMBERS.inc();
+            }
+        });
     }
 }

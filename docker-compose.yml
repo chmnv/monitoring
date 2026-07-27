@@ -70,9 +70,11 @@ services:
     # on :9182) via the hostname host.docker.internal.
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    # Start independently of WildFly health so that when the app is DOWN,
+    # Prometheus/Grafana still run and can show up=0 + fire email alerts.
+    # Soft ordering only: try to start after wildfly container exists.
     depends_on:
-      wildfly:
-        condition: service_healthy   # start scraping only once the target is up
+      - wildfly
     healthcheck:
       # wget ships in the Prometheus (busybox-based) image; /-/healthy is built in.
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]

@@ -78,15 +78,19 @@ The WAR is **never** committed — it is always built from `./kitchensink` durin
 
 ## Dashboards (provisioned)
 
-| Dashboard                         | UID                 | Focus                                      |
-|-----------------------------------|---------------------|--------------------------------------------|
-| Platform Overview                 | `afsypu2byt8u8b`    | Single pane of glass + drill-downs         |
-| JVM Overview                      | `jvm-overview`      | Heap, GC, threads, process                 |
-| WildFly HTTP & Datasources        | `wildfly-http-db`   | Undertow RED + datasource pool             |
-| Application - Kitchensink Business| `kitchensink-app`   | Registrations, failures, duration, members |
-| Windows Host                      | `windows-host`      | CPU / RAM / disk / network                 |
-| WildFly Logs                      | `wildfly-logs`      | Log volume, levels, live stream            |
-| WildFly Security & Audit          | `wildfly-security`  | Management audit trail                      |
+| # | Dashboard | UID | Focus |
+|---|-----------|-----|-------|
+| 01 | Platform Overview | `afsypu2byt8u8b` | Single pane of glass + drill-downs |
+| 02 | Windows Host | `windows-host` | CPU / RAM / disk / network |
+| 03 | JVM Overview | `jvm-overview` | Heap, GC, threads, classes |
+| 04 | WildFly HTTP & Datasources | `wildfly-http-db` | Undertow RED + datasource pool |
+| 05 | Database & Query Timing | `wildfly-db` | ExampleDS pool + app DB ops |
+| 06 | Application - Kitchensink Business | `kitchensink-app` | Registrations, failures, duration |
+| 07 | WildFly Logs | `wildfly-logs` | Log volume, levels, live stream |
+| 08 | WildFly Security & Audit | `wildfly-security` | Management audit trail |
+| 09 | System Health & SLA | `system-health` | SLA, error budget, SLOs |
+
+Target for mentor deliverable: **15** (see private notes / roadmap). Current live set: **9**.
 
 ## Application / business metrics
 
@@ -96,7 +100,8 @@ The WAR is **never** committed — it is always built from `./kitchensink` durin
 - `kitchensink_registrations_total` — successful registrations
 - `kitchensink_registration_failures_total{reason=...}` — validation / duplicate_email / error
 - `kitchensink_registration_duration_seconds` — histogram (avg / p95 / p99)
-- `kitchensink_members` — current member count (gauge)
+- `kitchensink_db_operation_duration_seconds{operation}` — JPA/DB op timing
+  (`findAll`, `findById`, `findByEmail`, `persist` after flush, `countAll`)
 
 ## Alerts (as code)
 

@@ -44,8 +44,10 @@ public final class AppMetrics {
             .register();
 
     /**
-     * Per-operation DB/JPA timing (find, persist, count, …). Complements WildFly
+     * Per-operation DB/JPA timing (find, persist+flush, count, …). Complements WildFly
      * pool average_usage_time / get_time (connection hold time at the pool layer).
+     * For persist, registration flushes so the sample includes the INSERT SQL, not only
+     * persistence-context enqueue. Business success counters are recorded after TX commit.
      */
     public static final Histogram DB_OPERATION = Histogram.builder()
             .name("kitchensink_db_operation_duration_seconds")
