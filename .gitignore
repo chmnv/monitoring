@@ -20,3 +20,6 @@ target/
 
 # --- Agent working notes (private context, not for the repo) ---
 AGENT_NOTES.md
+
+# local UI verification screenshots
+.ui-shots/

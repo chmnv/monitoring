@@ -1,202 +1,551 @@
 /*
- * JBoss, Home of Professional Open Source
- * Copyright 2015, Red Hat, Inc. and/or its affiliates, and individual
- * contributors by the @authors tag. See the copyright.txt in the
- * distribution for a full listing of individual contributors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * http://www.apache.org/licenses/LICENSE-2.0
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Kitchensink demo UI — simple single-column layout (no overlapping text).
  */
-/* Core styles for the page */
-body {
+
+:root {
+  --ink: #1a2330;
+  --muted: #5a6573;
+  --line: #d5dde6;
+  --paper: #ffffff;
+  --bg: #eef3f1;
+  --brand: #0f766e;
+  --brand-deep: #0a5a54;
+  --ok: #1b6b42;
+  --ok-bg: #e6f5ec;
+  --warn: #8a6412;
+  --warn-bg: #fff6d9;
+  --bad: #b42318;
+  --bad-bg: #fdeceb;
+  --info: #1b567c;
+  --info-bg: #e8f2fa;
+  --font: "Segoe UI", "Nunito", Tahoma, sans-serif;
+  --display: "Segoe UI Semibold", "Segoe UI", Tahoma, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html, body {
   margin: 0;
   padding: 0;
-  background-color: #F1F1F1;
-  font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
-  font-size: 0.8em;
-  color:#363636;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
-#container {
-  margin: 0 auto;
-  padding: 0 20px 10px 20px;
-  border-top: 5px solid #000000;
-  border-left: 5px solid #8c8f91;
-  border-right: 5px solid #8c8f91;
-  border-bottom: 25px solid #8c8f91;
-  width: 865px; /* subtract 40px from banner width for padding */
-  background: #FFFFFF;
-  background-image: url(#{request.contextPath}/resources/gfx/headerbkg.png);
-  background-repeat: repeat-x;
-  padding-top: 30px;
-  box-shadow: 3px 3px 15px #d5d5d5;
-}
-#content {
-  float: left;
-  width: 500px;
-  margin: 20px;
-}
-#aside {
-  font-size: 0.9em;
-  width: 275px;
-  float: left;
-  margin: 20px 0px;
-  border: 1px solid #D5D5D5;
-  background: #F1F1F1;
-  background-image: url(#{request.contextPath}/resources/gfx/asidebkg.png);
-  background-repeat: repeat-x;
-  padding: 20px;
+body {
+  min-height: 100vh;
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.55;
+  background: var(--bg);
 }
 
-#aside ul {
-  padding-left: 30px;
-}
-.dualbrand {
-  float: right;
-  padding-right: 10px;
-}
-#footer {
-  clear: both;
-  text-align: center;
-  color: #666666;
-  font-size: 0.85em;
-}
-code {
-  font-size: 1.1em;
-}
 a {
-  color: #4a5d75;
+  color: var(--brand);
+  font-weight: 700;
   text-decoration: none;
 }
 a:hover {
-  color: #369;
   text-decoration: underline;
 }
-h1 {
-  color:#243446;
-  font-size: 2.25em;
-}
-h2 {
-  font-size: 1em;
-}
-h3 {
-  color:#243446;
-}
-h4 {
-}
-h5 {
-}
-h6 {
-}
-/* Member registration styles */
-span.invalid {
-  padding-left: 3px;
-  color: red;
-}
-form {
-  padding: 1em;
-  font: 80%/1 sans-serif;
-  width: 375px;
-  border: 1px solid #D5D5D5;
-}
-label {
-  float: left;
-  width: 15%;
-  margin-left: 20px;
-  margin-right: 0.5em;
-  padding-top: 0.2em;
-  text-align: right;
-  font-weight: bold;
-  color:#363636;
-}
-input {
-  margin-bottom: 8px;
-}
-.register {
-  float: left;
-  margin-left: 85px;
+
+code {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.9em;
+  background: #e8eeeb;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.05em 0.35em;
 }
 
-/*  -----  table style  -------  */
+h1, h2, h3 {
+  font-family: var(--display);
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0 0 0.6rem;
+  color: var(--ink);
+}
+h1 { font-size: 1.75rem; }
+h2 { font-size: 1.2rem; margin-top: 1.5rem; }
+h3 { font-size: 1.05rem; margin-top: 0; }
 
-
-/*  = Simple Table style (black header, grey/white stripes  */
-
-.simpletablestyle {
-  background-color:#E6E7E8;
-  clear:both;
-  width: 550px;
+p {
+  margin: 0 0 0.9rem;
+  color: var(--muted);
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
-.simpletablestyle img {
-  border:0px;
+#container {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0.75rem;
+  box-sizing: border-box;
 }
 
-.simpletablestyle td {
-  height:2em;
-  padding-left: 6px;
-  font-size:11px;
-  padding:5px 5px;
+.app-shell {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  max-width: 100%;
 }
 
-.simpletablestyle th {
-	background: url(#{request.contextPath}/resources/gfx/bkg-blkheader.png) black repeat-x top left;
-  font-size:12px;
-  font-weight:normal;
-  padding:0 10px 0 5px;
-  border-bottom:#999999 dotted 1px;
+.app-top {
+  display: block;
+  padding: 1rem 1.15rem;
+  border-bottom: 1px solid var(--line);
+  background: #f7faf9;
 }
 
-.simpletablestyle thead {
-  background: url(#{request.contextPath}/resources/gfx/bkg-blkheader.png) black repeat-x top left;
-  height:31px;
-  font-size:10px;
-  font-weight:bold;
-  color:#FFFFFF;
-  text-align:left;
+.brand {
+  display: block;
+  margin-bottom: 0.75rem;
+}
+.brand-name {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--brand-deep);
+  line-height: 1.2;
+}
+.brand-tag {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-weight: 600;
+  line-height: 1.35;
 }
 
-.simpletablestyle .header a {
-  color:#94aebd;
+.app-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  width: 100%;
 }
-
-.simpletablestype tfoot {
-	height: 20px;
-  font-size: 10px;
-  font-weight: bold;
-  background-color: #EAECEE;
+.app-nav a {
+  display: inline-block;
+  flex: 1 1 auto;
   text-align: center;
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  color: var(--ink);
+  background: #e8efec;
+  font-weight: 700;
+  text-decoration: none;
+  line-height: 1.2;
+  min-width: 5.5rem;
+}
+.app-nav a:hover {
+  background: #dce7e3;
+  text-decoration: none;
+}
+.app-nav a.is-active {
+  color: #fff;
+  background: var(--brand);
 }
 
-.simpletablestyle tr.header td {
-  padding: 0px 10px 0px 5px;
+/* ONE column — sidebar stacks below main (no side-by-side overlap) */
+.app-body {
+  display: block;
+}
+
+#content,
+.app-main {
+  display: block;
+  padding: 1.15rem 1.15rem 0.5rem;
+  min-width: 0;
+  overflow: visible;
+}
+
+#aside,
+.app-aside {
+  display: block;
+  margin: 0.5rem 1.15rem 1.15rem;
+  padding: 1rem;
+  background: #f4f8f6;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  font-size: 0.95rem;
+}
+#aside p,
+.app-aside p {
+  margin-bottom: 0.65rem;
+}
+#aside ul,
+.app-aside ul {
+  margin: 0 0 0.75rem;
+  padding-left: 1.2rem;
+  color: var(--muted);
+}
+#aside li,
+.app-aside li {
+  margin: 0.4rem 0;
+  line-height: 1.45;
+}
+
+#footer,
+.app-footer {
+  display: block;
+  clear: both;
+  padding: 0.85rem 1.15rem;
+  border-top: 1px solid var(--line);
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.82rem;
+  background: #fafbfc;
+}
+#footer p,
+.app-footer p {
+  margin: 0;
+}
+
+.dualbrand {
+  display: none !important;
+}
+
+.lead {
+  max-width: none;
+  margin-bottom: 1rem;
+}
+
+.panel {
+  display: block;
+  margin: 0 0 1.25rem;
+  padding: 1.1rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.tip {
+  display: block;
+  margin: 0 0 1.25rem;
+  padding: 0.95rem 1rem;
+  border-radius: 10px;
+  background: var(--info-bg);
+  border: 1px solid #c5dced;
+  color: var(--info);
+  font-size: 0.95rem;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  max-width: 100%;
+}
+.tip strong {
+  color: var(--ink);
+}
+
+.demo-chip {
+  display: inline-block;
+  margin: 0.2rem 0.15rem 0.2rem 0;
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  background: #fff;
+  border: 1px solid #c5dced;
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.85rem;
+  color: var(--ink);
+  white-space: normal;
+  word-break: break-all;
+  vertical-align: baseline;
+  max-width: 100%;
+}
+
+.tip-list {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.tip-list li {
+  margin: 0.35rem 0;
+  color: var(--ink);
+  line-height: 1.45;
+}
+.tip-list span.k {
+  display: inline-block;
+  min-width: 5.5rem;
+  color: var(--muted);
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.field {
+  display: block;
+  margin: 0 0 1.15rem;
+}
+.field > span,
+.field-label,
+label.field-label {
+  display: block;
+  margin: 0 0 0.45rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="tel"] {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.3;
+}
+input:focus {
+  outline: 2px solid rgba(15, 118, 110, 0.35);
+  border-color: var(--brand);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0.25rem 0 0;
+}
+
+button,
+input[type="submit"],
+.register {
+  display: inline-block;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.btn-primary,
+button#login,
+button#go,
+input.register,
+.register {
+  background: var(--brand) !important;
+  color: #fff !important;
+  border-color: var(--brand) !important;
+}
+.btn-primary:hover,
+button#login:hover,
+button#go:hover,
+input.register:hover,
+.register:hover {
+  background: var(--brand-deep) !important;
+}
+
+.btn-secondary,
+button#logout,
+button#check {
+  background: #eef2f0 !important;
+  color: var(--ink) !important;
+  border-color: var(--line) !important;
+}
+
+.status {
+  display: block;
+  margin: 1rem 0 0;
+  padding: 0.75rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: #f5f7f9;
+  color: var(--muted);
+  font-weight: 600;
+  line-height: 1.45;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
+}
+.status.is-ok { background: var(--ok-bg); border-color: #b5dfc4; color: var(--ok); }
+.status.is-bad { background: var(--bad-bg); border-color: #f0bbb5; color: var(--bad); }
+.status.is-warn { background: var(--warn-bg); border-color: #ebd48a; color: var(--warn); }
+.status.is-info { background: var(--info-bg); border-color: #c5dced; color: var(--info); }
+
+.outcome {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  margin-left: 0.25rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: 1.3;
+  vertical-align: middle;
+}
+.outcome-hit { background: var(--ok-bg); color: var(--ok); }
+.outcome-zero { background: var(--warn-bg); color: var(--warn); }
+.outcome-empty,
+.outcome-refine { background: var(--info-bg); color: var(--info); }
+.outcome-error { background: var(--bad-bg); color: var(--bad); }
+
+.search-row {
+  display: block;
+}
+.search-row .field {
+  margin-bottom: 0.75rem;
+}
+.search-row button {
+  display: inline-block;
+}
+
+/* Tables — keep real table layout (display:block on <table> causes overlapping cells) */
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin: 0.75rem 0 1rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+}
+table.simpletablestyle,
+.simpletablestyle {
+  display: table;
+  width: 100%;
+  max-width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  margin: 0;
+  border: 0;
+}
+.table-wrap > table.simpletablestyle {
+  border: 0;
+  border-radius: 0;
+}
+table.simpletablestyle th,
+table.simpletablestyle td,
+.simpletablestyle th,
+.simpletablestyle td {
+  padding: 0.65rem 0.75rem;
+  text-align: left;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line);
+  word-break: break-word;
+}
+table.simpletablestyle thead,
+table.simpletablestyle th,
+.simpletablestyle thead,
+.simpletablestyle th {
+  background: #12352f;
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+table.simpletablestyle tr:nth-child(odd),
+.simpletablestyle tr:nth-child(odd) { background: #f7fbfa; }
+table.simpletablestyle tr:nth-child(even),
+.simpletablestyle tr:nth-child(even) { background: #fff; }
+table.simpletablestyle tfoot td,
+.simpletablestyle tfoot td {
+  background: #eef4f2;
+  font-size: 0.85rem;
+  font-weight: 700;
 }
 
 
-.simpletablestyle .subheader {
-  background-color: #e6e7e8;
-  font-size:10px;
-  font-weight:bold;
-  color:#000000;
-  text-align:left;
+/* JSF forms */
+form {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font: inherit;
+}
+form table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0.65rem;
+}
+form table td {
+  vertical-align: top;
+  padding: 0.15rem 0.5rem 0.15rem 0;
+  line-height: 1.4;
+}
+td.titleCell,
+.titleCell {
+  width: 6.5rem;
+  white-space: nowrap;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+form table label {
+  display: inline;
+  float: none !important;
+  width: auto !important;
+  margin: 0 !important;
+  text-align: left !important;
+  font-weight: 700;
+  color: var(--muted);
+}
+form input[type="text"],
+form input[type="email"] {
+  width: 100%;
+  max-width: 28rem;
+  margin: 0;
 }
 
-/* Using new CSS3 selectors for styling*/
-.simpletablestyle tr:nth-child(odd) {
-  background: #f4f3f3;
+span.invalid,
+.invalid {
+  display: inline-block;
+  color: var(--bad);
+  font-weight: 700;
+  padding-left: 0.15rem;
+  line-height: 1.4;
 }
-.simpletablestyle tr:nth-child(even) {
-  background: #ffffff;
+.valid {
+  color: var(--ok);
+  font-weight: 700;
+}
+.messages {
+  display: inline-block;
+  margin-left: 0.5rem;
 }
 
-.simpletablestyle td a:hover {
-  color:#3883ce;
-  text-decoration:none; 
+@media (max-width: 560px) {
+  #container { padding: 0.65rem; }
+  form table,
+  form table tbody,
+  form table tr,
+  form table td {
+    display: block;
+    width: 100%;
+  }
+  td.titleCell,
+  .titleCell {
+    width: auto;
+    margin-bottom: 0.25rem;
+    padding-bottom: 0;
+  }
 }

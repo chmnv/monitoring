@@ -2,51 +2,88 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <title>kitchensink — Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>kitchensink - Login</title>
   <link rel="stylesheet" href="resources/css/screen.css"/>
-  <style>
-    #login-box { display: flex; flex-direction: column; gap: 8px; max-width: 320px; margin: 1em 0; }
-    #login-box label { display: flex; flex-direction: column; gap: 2px; }
-    #login-box input { padding: 4px 8px; }
-    #actions { display: flex; gap: 8px; margin-top: 4px; }
-    #status { color: #555; margin: 0.5em 0 1em; }
-    .nav { margin-bottom: 1em; }
-  </style>
 </head>
 <body>
   <div id="container">
-    <div id="content">
-      <p class="nav">
-        <a href="index.jsf">← Registration</a> ·
-        <a href="search.html">Search</a>
-      </p>
-      <h1>Member login</h1>
-      <p>Minimal UI for dashboard <b>12 Authentication &amp; Sessions</b>.
-         Demo password for all accounts: <code>demo</code>
-         (seeded user: <code>john.smith@mailinator.com</code>).</p>
+    <div class="app-shell">
+      <div class="app-top">
+        <div class="brand">
+          <div class="brand-name">kitchensink</div>
+          <div class="brand-tag">WildFly demo app - dashboard 12</div>
+        </div>
+        <nav class="app-nav" aria-label="Main">
+          <a href="index.jsf">Register</a>
+          <a href="search.html">Search</a>
+          <a class="is-active" href="login.html">Login</a>
+        </nav>
+      </div>
 
-      <div id="login-box">
-        <label>Email
-          <input id="email" type="email" value="john.smith@mailinator.com" autofocus/>
-        </label>
-        <label>Password
-          <input id="password" type="password" value="demo"/>
-        </label>
-        <div id="actions">
-          <button id="login" type="button">Login</button>
-          <button id="logout" type="button">Logout</button>
-          <button id="check" type="button">Check session</button>
+      <div class="app-body">
+        <div class="app-main" id="content">
+          <h1>Member login</h1>
+          <p class="lead">Sign in to create an app session. Metrics go to Grafana dashboard <strong>12</strong>.</p>
+
+          <div class="tip">
+            <div>Seeded account:</div>
+            <ul class="tip-list">
+              <li><span class="k">Email</span> john.smith@mailinator.com</li>
+              <li><span class="k">Password</span> demo</li>
+            </ul>
+            <div style="margin-top:0.55rem">Then Logout or Check session.</div>
+          </div>
+
+          <div class="panel">
+            <div id="login-box">
+              <div class="field">
+                <label class="field-label" for="email">Email</label>
+                <input id="email" type="email" value="john.smith@mailinator.com" autofocus autocomplete="username"/>
+              </div>
+              <div class="field">
+                <label class="field-label" for="password">Password</label>
+                <input id="password" type="password" value="demo" autocomplete="current-password"/>
+              </div>
+              <div class="actions" id="actions">
+                <button id="login" class="btn-primary" type="button">Login</button>
+                <button id="logout" class="btn-secondary" type="button">Logout</button>
+                <button id="check" class="btn-secondary" type="button">Check session</button>
+              </div>
+            </div>
+            <p id="status" class="status is-info" role="status">Ready - press Login to start a session.</p>
+          </div>
+        </div>
+
+        <div class="app-aside" id="aside">
+          <h3>What you will see</h3>
+          <ul>
+            <li><strong>success</strong> - green path, active sessions up</li>
+            <li><strong>bad_credentials</strong> - wrong password</li>
+            <li><strong>unknown_user</strong> - email not registered</li>
+            <li><strong>logout</strong> - sessions down</li>
+          </ul>
+          <p><a href="http://localhost:3000/d/auth-sessions">Open dashboard 12</a></p>
         </div>
       </div>
-      <p id="status">Not checked yet.</p>
+
+      <div class="app-footer" id="footer">
+        <p>Demo UI for the monitoring stack.</p>
+      </div>
     </div>
   </div>
+
   <script>
     (function () {
       var email = document.getElementById('email');
       var password = document.getElementById('password');
       var status = document.getElementById('status');
       var base = window.location.pathname.replace(/\/[^/]*$/, '') || '';
+
+      function setStatus(text, kind) {
+        status.textContent = text;
+        status.className = 'status' + (kind ? ' is-' + kind : '');
+      }
 
       function post(path, body) {
         var opts = {
@@ -71,38 +108,44 @@
       }
 
       document.getElementById('login').addEventListener('click', function () {
-        status.textContent = 'Logging in…';
+        setStatus('Logging in...', 'info');
         post('/rest/auth/login', { email: email.value, password: password.value })
           .then(function (r) {
             if (r.ok) {
-              status.textContent = 'Logged in as ' + r.body.email + ' (id ' + r.body.memberId + ')';
+              setStatus('Logged in as ' + r.body.email + ' (member #' + r.body.memberId + ')', 'ok');
             } else {
-              status.textContent = 'Login failed (' + r.status + '): ' + (r.body.error || JSON.stringify(r.body));
+              var err = (r.body && r.body.error) || ('HTTP ' + r.status);
+              setStatus('Login failed: ' + err, 'bad');
             }
           })
-          .catch(function (e) { status.textContent = 'Login error: ' + e.message; });
+          .catch(function (e) { setStatus('Login error: ' + e.message, 'bad'); });
       });
 
       document.getElementById('logout').addEventListener('click', function () {
-        status.textContent = 'Logging out…';
+        setStatus('Logging out...', 'info');
         post('/rest/auth/logout')
           .then(function (r) {
-            status.textContent = r.ok ? 'Logged out.' : 'Logout HTTP ' + r.status;
+            setStatus(r.ok ? 'Logged out - session cleared.' : 'Logout HTTP ' + r.status, r.ok ? 'warn' : 'bad');
           })
-          .catch(function (e) { status.textContent = 'Logout error: ' + e.message; });
+          .catch(function (e) { setStatus('Logout error: ' + e.message, 'bad'); });
       });
 
       document.getElementById('check').addEventListener('click', function () {
-        status.textContent = 'Checking…';
+        setStatus('Checking session...', 'info');
         get('/rest/auth/session')
           .then(function (r) {
             if (r.ok && r.body.authenticated) {
-              status.textContent = 'Session active: ' + r.body.email + ' (since ' + r.body.loginAt + ')';
+              var when = r.body.loginAt ? new Date(Number(r.body.loginAt)).toLocaleString() : '?';
+              setStatus('Session active: ' + r.body.email + ' | since ' + when, 'ok');
             } else {
-              status.textContent = 'No active session.';
+              setStatus('No active session.', 'warn');
             }
           })
-          .catch(function (e) { status.textContent = 'Session check error: ' + e.message; });
+          .catch(function (e) { setStatus('Session check error: ' + e.message, 'bad'); });
+      });
+
+      password.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') document.getElementById('login').click();
       });
     })();
   </script>

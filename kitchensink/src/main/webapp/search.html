@@ -2,54 +2,98 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <title>kitchensink — Search</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>kitchensink - Search</title>
   <link rel="stylesheet" href="resources/css/screen.css"/>
-  <style>
-    #search-box { display: flex; gap: 8px; margin: 1em 0; align-items: center; }
-    #search-box input[type=text] { flex: 1; max-width: 320px; padding: 4px 8px; }
-    #status { color: #555; margin: 0.5em 0 1em; }
-    #results { width: 100%; border-collapse: collapse; }
-    #results th, #results td { border: 1px solid #ccc; padding: 4px 8px; text-align: left; }
-    #results th { background: #eee; }
-    .nav { margin-bottom: 1em; }
-  </style>
 </head>
 <body>
   <div id="container">
-    <div id="content">
-      <p class="nav"><a href="index.jsf">← Registration</a> · <a href="login.html">Login</a></p>
-      <h1>Member search</h1>
-      <p>Minimal UI for dashboard <b>11 Search &amp; Discovery</b>.
-         Calls <code>/rest/members/search</code> (same metrics as the load script).</p>
-
-      <div id="search-box">
-        <label for="q">Name contains</label>
-        <input id="q" type="text" placeholder="e.g. Load, Jane, a" autofocus/>
-        <button id="go" type="button">Search</button>
+    <div class="app-shell">
+      <div class="app-top">
+        <div class="brand">
+          <div class="brand-name">kitchensink</div>
+          <div class="brand-tag">WildFly demo app - dashboard 11</div>
+        </div>
+        <nav class="app-nav" aria-label="Main">
+          <a href="index.jsf">Register</a>
+          <a class="is-active" href="search.html">Search</a>
+          <a href="login.html">Login</a>
+        </nav>
       </div>
-      <p id="status">Type a query and press Search (or Enter).</p>
 
-      <table id="results" class="simpletablestyle" hidden>
-        <thead>
-          <tr><th>Id</th><th>Name</th><th>Email</th><th>Phone</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <div class="app-body">
+        <div class="app-main" id="content">
+          <h1>Member search</h1>
+          <p class="lead">Find members by name. Outcomes go to Grafana dashboard <strong>11</strong>.</p>
+
+          <div class="tip">
+            <div>Example queries:</div>
+            <ul class="tip-list">
+              <li><span class="k">Hit</span> Load</li>
+              <li><span class="k">Zero</span> zzz</li>
+              <li><span class="k">Refine</span> a (length 1-2)</li>
+              <li><span class="k">Empty</span> leave the box blank</li>
+            </ul>
+          </div>
+
+          <div class="panel">
+            <div class="search-row" id="search-box">
+              <div class="field">
+                <label class="field-label" for="q">Name contains</label>
+                <input id="q" type="text" placeholder="e.g. Load, Jane, a" autofocus/>
+              </div>
+              <button id="go" class="btn-primary" type="button">Search</button>
+            </div>
+            <p id="status" class="status is-info" role="status">Type a query and press Search (or Enter).</p>
+          </div>
+
+          <div class="table-wrap" id="results-wrap" hidden>
+            <table id="results" class="simpletablestyle">
+              <thead>
+                <tr><th>Id</th><th>Name</th><th>Email</th><th>Phone</th></tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="app-aside" id="aside">
+          <h3>Outcomes</h3>
+          <ul>
+            <li><strong>hit</strong> - at least one match</li>
+            <li><strong>zero</strong> - valid query, nothing found</li>
+            <li><strong>refine</strong> - query length 1-2</li>
+            <li><strong>empty</strong> - blank query (no DB hit)</li>
+          </ul>
+          <p><a href="http://localhost:3000/d/search-discovery">Open dashboard 11</a></p>
+        </div>
+      </div>
+
+      <div class="app-footer" id="footer">
+        <p>Demo UI for the monitoring stack.</p>
+      </div>
     </div>
   </div>
+
   <script>
     (function () {
       var q = document.getElementById('q');
       var go = document.getElementById('go');
       var status = document.getElementById('status');
       var table = document.getElementById('results');
+      var wrap = document.getElementById('results-wrap');
       var tbody = table.querySelector('tbody');
       var base = window.location.pathname.replace(/\/[^/]*$/, '') || '';
 
+      function setStatus(html, kind) {
+        status.innerHTML = html;
+        status.className = 'status' + (kind ? ' is-' + kind : '');
+      }
+
       function run() {
         var query = q.value;
-        status.textContent = 'Searching…';
-        table.hidden = true;
+        setStatus('Searching...', 'info');
+        wrap.hidden = true;
         tbody.innerHTML = '';
         var url = base + '/rest/members/search' +
           (query.length ? ('?q=' + encodeURIComponent(query)) : '');
@@ -60,10 +104,17 @@
           })
           .then(function (rows) {
             if (!Array.isArray(rows)) rows = [];
-            var label = !query.trim() ? 'empty query' :
-              (query.trim().length <= 2 ? 'refine (short)' :
+            var outcome = !query.trim() ? 'empty' :
+              (query.trim().length <= 2 ? 'refine' :
                 (rows.length ? 'hit' : 'zero'));
-            status.textContent = rows.length + ' result(s) — outcome ≈ ' + label;
+            var kind = outcome === 'hit' ? 'ok' :
+              (outcome === 'zero' ? 'warn' :
+                (outcome === 'error' ? 'bad' : 'info'));
+            setStatus(
+              rows.length + ' result(s) - outcome ' +
+              '<span class="outcome outcome-' + outcome + '">' + outcome + '</span>',
+              kind
+            );
             rows.forEach(function (m) {
               var tr = document.createElement('tr');
               tr.innerHTML = '<td>' + m.id + '</td><td>' + escapeHtml(m.name) +
@@ -71,10 +122,11 @@
                 escapeHtml(m.phoneNumber) + '</td>';
               tbody.appendChild(tr);
             });
-            table.hidden = rows.length === 0;
+            wrap.hidden = rows.length === 0;
           })
           .catch(function (e) {
-            status.textContent = 'Search failed: ' + e.message;
+            setStatus('Search failed: ' + escapeHtml(e.message) +
+              ' <span class="outcome outcome-error">error</span>', 'bad');
           });
       }
 
