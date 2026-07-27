@@ -41,6 +41,10 @@ public class MetricsBootstrap {
         for (String[] pair : fieldSeeds) {
             AppMetrics.FIELD_FAILURES.labelValues(pair[0], pair[1]).inc(0);
         }
-        log.info("Seeded kitchensink_members gauge = " + count + " and failure reason/field series");
+        // Search outcomes for dashboard 11.
+        for (String outcome : new String[] { "hit", "zero", "empty", "refine", "error" }) {
+            AppMetrics.SEARCH.labelValues(outcome).inc(0);
+        }
+        log.info("Seeded kitchensink_members gauge = " + count + " and failure/search series");
     }
 }

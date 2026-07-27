@@ -75,6 +75,28 @@ public final class AppMetrics {
             .labelNames("operation")
             .register();
 
+    /**
+     * Member name search outcomes for dashboard 11 (Search & Discovery).
+     * Outcomes: hit (matches > 0), zero (no matches), empty (blank q), refine (short q, len<=2).
+     */
+    public static final Counter SEARCH = Counter.builder()
+            .name("kitchensink_searches")
+            .help("Member search requests by outcome")
+            .labelNames("outcome")
+            .register();
+
+    /** End-to-end search latency (API + DB), seconds. */
+    public static final Histogram SEARCH_DURATION = Histogram.builder()
+            .name("kitchensink_search_duration_seconds")
+            .help("Time spent handling a member search request, in seconds")
+            .register();
+
+    /** How many members a search returned (0 for zero/empty). */
+    public static final Histogram SEARCH_RESULTS = Histogram.builder()
+            .name("kitchensink_search_results")
+            .help("Number of members returned by a search")
+            .register();
+
     private AppMetrics() {
         // utility holder — not instantiable
     }

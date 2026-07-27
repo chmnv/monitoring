@@ -28,17 +28,17 @@ $workerScript = {
     $ErrorActionPreference = "Continue"
     $roll = Get-Random -Maximum 100
     try {
-        if ($roll -lt 42) {
+        if ($roll -lt 32) {
             # List members -> findAll DB op + Undertow GET
             Invoke-WebRequest -Uri $Rest -UseBasicParsing -TimeoutSec 10 | Out-Null
             return "get"
         }
-        if ($roll -lt 55) {
+        if ($roll -lt 42) {
             # HTML page -> Undertow request + JSF session (Active Sessions panel)
             Invoke-WebRequest -Uri "$BaseUrl/" -UseBasicParsing -TimeoutSec 10 | Out-Null
             return "get"
         }
-        if ($roll -lt 65) {
+        if ($roll -lt 50) {
             # Lookup by id -> findById DB op. Mix hits (200) and misses (404).
             $id = if ((Get-Random -Maximum 2) -eq 0) { Get-Random -Minimum 1 -Maximum 8 } else { Get-Random -Minimum 900000 -Maximum 999999 }
             try {
@@ -46,7 +46,27 @@ $workerScript = {
             } catch { }
             return "get"
         }
-        if ($roll -lt 70 -and $DoFailures) {
+        if ($roll -lt 68) {
+            # Dashboard 11 — search hit / zero / empty / refine
+            $pick = Get-Random -Maximum 100
+            if ($pick -lt 40) {
+                $q = "Load"          # matches Load User * from successful regs
+            } elseif ($pick -lt 55) {
+                $q = "Jane"          # seeded / duplicate target
+            } elseif ($pick -lt 70) {
+                $q = "zzznofind$Index"  # zero results
+            } elseif ($pick -lt 85) {
+                $q = "a"             # refine (short query)
+            } else {
+                $q = ""              # empty query
+            }
+            $uri = if ([string]::IsNullOrEmpty($q)) { "$Rest/search" } else { "$Rest/search?q=$([uri]::EscapeDataString($q))" }
+            try {
+                Invoke-WebRequest -Uri $uri -UseBasicParsing -TimeoutSec 10 | Out-Null
+            } catch { }
+            return "get"
+        }
+        if ($roll -lt 72 -and $DoFailures) {
             # Bad name (digits) → Bean Validation Pattern on name
             $body = @{ name = "Bad123"; email = "bad-name-$Index@example.com"; phoneNumber = "2125551234" } | ConvertTo-Json -Compress
             try {
@@ -136,4 +156,4 @@ finally {
 
 Write-Host ""
 Write-Host "Done. total~$n get=$get post_ok=$ok fail=$fail"
-Write-Host "Check: http://localhost:3000/d/registration-quality  http://localhost:3000/d/kitchensink-app  http://localhost:3000/d/wildfly-http-db"
+Write-Host "Check: http://localhost:3000/d/search-discovery  http://localhost:3000/d/registration-quality  http://localhost:3000/d/kitchensink-app"

@@ -36,6 +36,7 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -70,6 +71,44 @@ public class MemberResourceRESTService {
     @Produces(MediaType.APPLICATION_JSON)
     public List<Member> listAllMembers() {
         return repository.findAllOrderedByName();
+    }
+
+    /**
+     * Name search for dashboard 11 — hit / zero / empty / refine outcomes.
+     * Declared before /{id} so "search" is not parsed as an id.
+     */
+    @GET
+    @Path("/search")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response searchMembers(@QueryParam("q") String q) {
+        long start = System.nanoTime();
+        try {
+            if (q == null || q.isBlank()) {
+                AppMetrics.SEARCH.labelValues("empty").inc();
+                AppMetrics.SEARCH_RESULTS.observe(0);
+                return Response.ok(List.of()).build();
+            }
+            String trimmed = q.trim();
+            List<Member> results = repository.searchByName(trimmed);
+            AppMetrics.SEARCH_RESULTS.observe(results.size());
+            if (trimmed.length() <= 2) {
+                // Short query = "refine" friction (too broad / exploratory).
+                AppMetrics.SEARCH.labelValues("refine").inc();
+            } else if (results.isEmpty()) {
+                AppMetrics.SEARCH.labelValues("zero").inc();
+            } else {
+                AppMetrics.SEARCH.labelValues("hit").inc();
+            }
+            return Response.ok(results).build();
+        } catch (Exception e) {
+            AppMetrics.SEARCH.labelValues("error").inc();
+            log.warning("Search failed: " + e.getMessage());
+            Map<String, String> body = new HashMap<>();
+            body.put("error", e.getMessage());
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(body).build();
+        } finally {
+            AppMetrics.SEARCH_DURATION.observe((System.nanoTime() - start) / 1_000_000_000.0);
+        }
     }
 
     @GET

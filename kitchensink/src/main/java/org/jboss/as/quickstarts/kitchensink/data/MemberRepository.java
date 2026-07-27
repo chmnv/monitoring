@@ -68,6 +68,26 @@ public class MemberRepository {
         }
     }
 
+    /**
+     * Case-insensitive name contains search (dashboard 11). Limited to 50 rows so
+     * result-size metrics stay bounded under load.
+     */
+    public List<Member> searchByName(String query) {
+        long start = System.nanoTime();
+        try {
+            CriteriaBuilder cb = em.getCriteriaBuilder();
+            CriteriaQuery<Member> criteria = cb.createQuery(Member.class);
+            Root<Member> member = criteria.from(Member.class);
+            String pattern = "%" + query.toLowerCase() + "%";
+            criteria.select(member)
+                    .where(cb.like(cb.lower(member.get("name")), pattern))
+                    .orderBy(cb.asc(member.get("name")));
+            return em.createQuery(criteria).setMaxResults(50).getResultList();
+        } finally {
+            observe("search", start);
+        }
+    }
+
     /** Total members in the DB — used to seed the kitchensink_members gauge on startup. */
     public long countAll() {
         long start = System.nanoTime();
