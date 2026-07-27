@@ -23,3 +23,6 @@ AGENT_NOTES.md
 
 # local UI verification screenshots
 .ui-shots/
+
+# animate-start PID lockfile
+scripts/.animate.pids

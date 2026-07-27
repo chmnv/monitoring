@@ -67,7 +67,12 @@ monitoring/
 │   ├── demo-all.ps1              # drive ALL dashboards (traffic + mgmt/audit)
 │   ├── load-traffic.ps1          # HTTP + DB + business load (parallel workers)
 │   ├── mgmt-activity.ps1         # management read+write ops for Security & Audit
-│   └── demo-burst.ps1            # short burst for live demos
+│   ├── demo-burst.ps1            # short burst for live demos
+│   ├── animate-start.ps1         # ONE command: start all animate traffic (bg)
+│   ├── animate-stop.ps1          # ONE command: stop all animate traffic
+│   ├── animate-all.ps1           # run per-dashboard animate scripts (01–15)
+│   ├── animate-live.ps1          # parallel boards (waits until done)
+│   └── animate/                  # one script per dashboard (panel → action map)
 ├── prometheus/prometheus.yml
 ├── loki/loki-config.yml
 ├── promtail/promtail-config.yml
@@ -225,6 +230,18 @@ docker compose up -d --build wildfly
 ## Demo checks
 
 ```powershell
+# ONE command start / stop all animation traffic (background)
+.\scripts\animate-start.ps1
+.\scripts\animate-stop.ps1
+
+# Per-dashboard animation (panel → action map in each script header)
+.\scripts\animate\12-auth-sessions.ps1 -DurationSec 60
+.\scripts\animate-all.ps1 -Dashboards 10,12,15 -DurationSec 45
+.\scripts\animate-all.ps1 -DurationSec 30          # all 01–15 sequentially
+
+# Parallel live traffic (blocks until DurationSec ends)
+.\scripts\animate-live.ps1 -DurationSec 600
+
 # Make EVERY dashboard live at once (traffic + management/audit activity)
 .\scripts\demo-all.ps1 -DurationSec 300 -Workers 6
 
@@ -245,12 +262,33 @@ docker stop wildfly
 docker start wildfly
 ```
 
+### Animate scripts → Grafana
+
+| # | Script | Grafana |
+|---|--------|---------|
+| 01 | `scripts/animate/01-platform.ps1` | `/d/afsypu2byt8u8b` |
+| 02 | `scripts/animate/02-windows-host.ps1` | `/d/windows-host` |
+| 03 | `scripts/animate/03-jvm.ps1` | `/d/jvm-overview` |
+| 04 | `scripts/animate/04-wildfly-http-db.ps1` | `/d/wildfly-http-db` |
+| 05 | `scripts/animate/05-wildfly-db.ps1` | `/d/wildfly-db` |
+| 06 | `scripts/animate/06-kitchensink-app.ps1` | `/d/kitchensink-app` |
+| 07 | `scripts/animate/07-wildfly-logs.ps1` | `/d/wildfly-logs` |
+| 08 | `scripts/animate/08-wildfly-security.ps1` | `/d/wildfly-security` |
+| 09 | `scripts/animate/09-system-health.ps1` | `/d/system-health` |
+| 10 | `scripts/animate/10-registration-quality.ps1` | `/d/registration-quality` |
+| 11 | `scripts/animate/11-search-discovery.ps1` | `/d/search-discovery` |
+| 12 | `scripts/animate/12-auth-sessions.ps1` | `/d/auth-sessions` |
+| 13 | `scripts/animate/13-account-activation.ps1` | `/d/account-activation` |
+| 14 | `scripts/animate/14-account-recovery.ps1` | `/d/account-recovery` |
+| 15 | `scripts/animate/15-app-authorization.ps1` | `/d/app-authorization` |
+
 ## Status / roadmap
 
 - [x] WildFly image (multi-stage, JMX Exporter, management, audit log)
 - [x] kitchensink vendored in-repo + business metrics endpoint
 - [x] Prometheus (JMX + native `:9990` + kitchensink-app + windows)
-- [x] Grafana datasources + dashboards-as-code (01–11)
+- [x] Grafana datasources + dashboards-as-code (01–15)
+- [x] Per-dashboard animate scripts (`scripts/animate/`, `animate-all.ps1`)
 - [x] Loki + Promtail (server.log + audit-log)
 - [x] Email alerts (Gmail SMTP, rules as code)
 - [x] Telegram + Jira tickets (`jira-bridge` webhook)
