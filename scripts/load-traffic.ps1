@@ -107,7 +107,7 @@ $workerScript = {
             } catch { }
             return "fail"
         }
-        if ($roll -lt 78) {
+        if ($roll -lt 76) {
             # Dashboard 13 — account activation funnel
             $auth = "$BaseUrl/rest/auth"
             $pick = Get-Random -Maximum 100
@@ -164,7 +164,101 @@ $workerScript = {
             } catch { }
             return "fail"
         }
-        if ($roll -lt 82 -and $DoFailures) {
+        if ($roll -lt 86) {
+            # Dashboard 14 — account recovery (never mutate seeded john.smith password)
+            $auth = "$BaseUrl/rest/auth"
+            $pick = Get-Random -Maximum 100
+            if ($pick -lt 40) {
+                # success: register → activate → request → reset → login with new password
+                $suffix = -join ((97..122) | Get-Random -Count 6 | ForEach-Object { [char]$_ })
+                $email = "rec-$suffix-$(Get-Random)@example.com"
+                $newPass = "reset-$suffix"
+                $reg = @{
+                    name        = "Load User $suffix"
+                    email       = $email
+                    phoneNumber = ("212555{0:D4}" -f (Get-Random -Maximum 10000))
+                } | ConvertTo-Json -Compress
+                try {
+                    $resp = Invoke-WebRequest -Uri $Rest -Method POST -Body $reg -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10
+                    $json = $resp.Content | ConvertFrom-Json
+                    if ($json.activationToken) {
+                        $ab = @{ token = $json.activationToken } | ConvertTo-Json -Compress
+                        Invoke-WebRequest -Uri "$auth/activate" -Method POST -Body $ab -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
+                    }
+                    $req = @{ email = $email } | ConvertTo-Json -Compress
+                    $rresp = Invoke-WebRequest -Uri "$auth/recovery/request" -Method POST -Body $req -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10
+                    $rtok = ($rresp.Content | ConvertFrom-Json).recoveryToken
+                    if ($rtok) {
+                        $rb = @{ token = $rtok; password = $newPass } | ConvertTo-Json -Compress
+                        Invoke-WebRequest -Uri "$auth/recovery/reset" -Method POST -Body $rb -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
+                        $login = @{ email = $email; password = $newPass } | ConvertTo-Json -Compress
+                        Invoke-WebRequest -Uri "$auth/login" -Method POST -Body $login -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
+                    }
+                    return "ok"
+                } catch { return "fail" }
+            }
+            if ($pick -lt 55) {
+                # unknown_user
+                $req = @{ email = "nobody-rec-$Index-$(Get-Random)@example.com" } | ConvertTo-Json -Compress
+                try {
+                    Invoke-WebRequest -Uri "$auth/recovery/request" -Method POST -Body $req -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
+                } catch { }
+                return "fail"
+            }
+            if ($pick -lt 70) {
+                # not_activated: pending account cannot recover
+                $suffix = -join ((97..122) | Get-Random -Count 6 | ForEach-Object { [char]$_ })
+                $email = "pend-rec-$suffix-$(Get-Random)@example.com"
+                $reg = @{
+                    name        = "Load User $suffix"
+                    email       = $email
+                    phoneNumber = ("212555{0:D4}" -f (Get-Random -Maximum 10000))
+                } | ConvertTo-Json -Compress
+                try {
+                    Invoke-WebRequest -Uri $Rest -Method POST -Body $reg -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
+                    $req = @{ email = $email } | ConvertTo-Json -Compress
+                    Invoke-WebRequest -Uri "$auth/recovery/request" -Method POST -Body $req -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
+                } catch { }
+                return "fail"
+            }
+            if ($pick -lt 85) {
+                # invalid_token
+                $rb = @{ token = "badrec$Index$(Get-Random)"; password = "x" } | ConvertTo-Json -Compress
+                try {
+                    Invoke-WebRequest -Uri "$auth/recovery/reset" -Method POST -Body $rb -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
+                } catch { }
+                return "fail"
+            }
+            # expired: register → activate → request → force expire → reset
+            $suffix = -join ((97..122) | Get-Random -Count 6 | ForEach-Object { [char]$_ })
+            $email = "recexp-$suffix-$(Get-Random)@example.com"
+            $reg = @{
+                name        = "Load User $suffix"
+                email       = $email
+                phoneNumber = ("212555{0:D4}" -f (Get-Random -Maximum 10000))
+            } | ConvertTo-Json -Compress
+            try {
+                $resp = Invoke-WebRequest -Uri $Rest -Method POST -Body $reg -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10
+                $json = $resp.Content | ConvertFrom-Json
+                if ($json.activationToken) {
+                    $ab = @{ token = $json.activationToken } | ConvertTo-Json -Compress
+                    Invoke-WebRequest -Uri "$auth/activate" -Method POST -Body $ab -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
+                }
+                $req = @{ email = $email } | ConvertTo-Json -Compress
+                $rresp = Invoke-WebRequest -Uri "$auth/recovery/request" -Method POST -Body $req -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10
+                $rtok = ($rresp.Content | ConvertFrom-Json).recoveryToken
+                if ($rtok) {
+                    $eb = @{ token = $rtok } | ConvertTo-Json -Compress
+                    Invoke-WebRequest -Uri "$auth/recovery/expire" -Method POST -Body $eb -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
+                    try {
+                        $rb = @{ token = $rtok; password = "too-late" } | ConvertTo-Json -Compress
+                        Invoke-WebRequest -Uri "$auth/recovery/reset" -Method POST -Body $rb -ContentType "application/json; charset=utf-8" -UseBasicParsing -TimeoutSec 10 | Out-Null
+                    } catch { }
+                }
+            } catch { }
+            return "fail"
+        }
+        if ($roll -lt 89 -and $DoFailures) {
             # Bad name (digits) → Bean Validation Pattern on name
             $body = @{ name = "Bad123"; email = "bad-name-$Index@example.com"; phoneNumber = "2125551234" } | ConvertTo-Json -Compress
             try {
@@ -172,7 +266,7 @@ $workerScript = {
                 return "ok"
             } catch { return "fail" }
         }
-        if ($roll -lt 85 -and $DoFailures) {
+        if ($roll -lt 91 -and $DoFailures) {
             # Bad email → Email constraint
             $suffix = -join ((97..122) | Get-Random -Count 5 | ForEach-Object { [char]$_ })
             $body = @{ name = "Bad Email $suffix"; email = "not-an-email"; phoneNumber = "2125559999" } | ConvertTo-Json -Compress
@@ -181,7 +275,7 @@ $workerScript = {
                 return "ok"
             } catch { return "fail" }
         }
-        if ($roll -lt 88 -and $DoFailures) {
+        if ($roll -lt 93 -and $DoFailures) {
             # Short / non-digit phone → Size + Digits on phoneNumber
             $suffix = -join ((97..122) | Get-Random -Count 5 | ForEach-Object { [char]$_ })
             $body = @{ name = "Bad Phone $suffix"; email = "bad-phone-$suffix@example.com"; phoneNumber = "12ab" } | ConvertTo-Json -Compress
@@ -190,7 +284,7 @@ $workerScript = {
                 return "ok"
             } catch { return "fail" }
         }
-        if ($roll -lt 92 -and $DoFailures) {
+        if ($roll -lt 95 -and $DoFailures) {
             # Duplicate email (seeded Jane Doe)
             $body = @{ name = "Jane Doe"; email = "jane.doe@mailinator.com"; phoneNumber = "2125551234" } | ConvertTo-Json -Compress
             try {
@@ -265,4 +359,4 @@ finally {
 
 Write-Host ""
 Write-Host "Done. total~$n get=$get post_ok=$ok fail=$fail"
-Write-Host "Check: http://localhost:3000/d/account-activation  http://localhost:3000/d/auth-sessions  http://localhost:3000/d/registration-quality"
+Write-Host "Check: http://localhost:3000/d/account-recovery  http://localhost:3000/d/account-activation  http://localhost:3000/d/auth-sessions"

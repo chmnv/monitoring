@@ -150,6 +150,43 @@ public final class AppMetrics {
             .help("Accounts that completed activation")
             .register();
 
+    /**
+     * Password recovery request attempts for dashboard 14.
+     * Outcomes: success, unknown_user, not_activated, error.
+     */
+    public static final Counter RECOVERY_REQUESTS = Counter.builder()
+            .name("kitchensink_recovery_requests")
+            .help("Password recovery requests by outcome")
+            .labelNames("outcome")
+            .register();
+
+    /**
+     * Password reset (token consume) attempts for dashboard 14.
+     * Outcomes: success, invalid_token, expired, error.
+     */
+    public static final Counter RECOVERY_RESETS = Counter.builder()
+            .name("kitchensink_recovery_resets")
+            .help("Password reset attempts by outcome")
+            .labelNames("outcome")
+            .register();
+
+    public static final Histogram RECOVERY_DURATION = Histogram.builder()
+            .name("kitchensink_recovery_duration_seconds")
+            .help("Time spent handling a recovery reset request, in seconds")
+            .register();
+
+    /** Accounts with an open (non-null) recovery token. */
+    public static final Gauge RECOVERY_PENDING = Gauge.builder()
+            .name("kitchensink_recovery_pending")
+            .help("Accounts with an outstanding password-recovery token")
+            .register();
+
+    /** Successful password resets (lifetime). */
+    public static final Counter RECOVERY_COMPLETED = Counter.builder()
+            .name("kitchensink_recovery_completed")
+            .help("Accounts that completed a password reset")
+            .register();
+
     private AppMetrics() {
         // utility holder — not instantiable
     }

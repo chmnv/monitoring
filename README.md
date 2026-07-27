@@ -98,8 +98,9 @@ The WAR is **never** committed — it is always built from `./kitchensink` durin
 | 11 | Search & Discovery | `search-discovery` | Hit / zero / refine search quality |
 | 12 | Authentication & Sessions | `auth-sessions` | App login outcomes + active sessions |
 | 13 | Account Activation | `account-activation` | Pending → token → activated funnel |
+| 14 | Account Recovery | `account-recovery` | Reset tokens + post-reset login |
 
-Target for mentor deliverable: **15** (see private notes / roadmap). Current live set: **13**.
+Target for mentor deliverable: **15** (see private notes / roadmap). Current live set: **14**.
 
 ## Application / business metrics
 
@@ -121,6 +122,11 @@ Target for mentor deliverable: **15** (see private notes / roadmap). Current liv
 - `kitchensink_activation_duration_seconds` — activation latency histogram
 - `kitchensink_accounts_pending` — pending (not yet activated) accounts
 - `kitchensink_accounts_activated_total` — successful activations
+- `kitchensink_recovery_requests_total{outcome}` — recovery request success / unknown_user / not_activated / error (dashboard 14)
+- `kitchensink_recovery_resets_total{outcome}` — password reset success / invalid_token / expired / error (dashboard 14)
+- `kitchensink_recovery_duration_seconds` — reset latency histogram
+- `kitchensink_recovery_pending` — open recovery tokens
+- `kitchensink_recovery_completed_total` — successful password resets
 - `kitchensink_registration_duration_seconds` — histogram (avg / p95 / p99)
 - `kitchensink_db_operation_duration_seconds{operation}` — JPA/DB op timing
   (`findAll`, `findById`, `findByEmail`, `persist` after flush, `countAll`)
@@ -172,6 +178,7 @@ Open:
 | http://localhost:8080/kitchensink/search.html | Member search (dashboard 11) |
 | http://localhost:8080/kitchensink/login.html | Member login (dashboard 12) |
 | http://localhost:8080/kitchensink/activate.html | Account activation (dashboard 13) |
+| http://localhost:8080/kitchensink/recover.html | Account recovery (dashboard 14) |
 | http://localhost:9990 | WildFly Management (`admin` / `admin`) |
 | http://localhost:9404/metrics | JMX Exporter |
 | http://localhost:8080/kitchensink/metrics | Business metrics |

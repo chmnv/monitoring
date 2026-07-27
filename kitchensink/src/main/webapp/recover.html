@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>kitchensink - Recover</title>
+  <link rel="stylesheet" href="resources/css/screen.css"/>
+</head>
+<body>
+  <div id="container">
+    <div class="app-shell">
+      <div class="app-top">
+        <div class="brand">
+          <div class="brand-name">kitchensink</div>
+          <div class="brand-tag">WildFly demo app - dashboard 14</div>
+        </div>
+        <nav class="app-nav" aria-label="Main">
+          <a href="index.jsf">Register</a>
+          <a href="activate.html">Activate</a>
+          <a href="login.html">Login</a>
+          <a class="is-active" href="recover.html">Recover</a>
+          <a href="search.html">Search</a>
+        </nav>
+      </div>
+
+      <div class="app-body">
+        <div class="app-main" id="content">
+          <h1>Account recovery</h1>
+          <p class="lead">Request a reset token, then set a new password. Metrics go to Grafana dashboard <strong>14</strong>.</p>
+
+          <div class="tip">
+            Only <strong>activated</strong> accounts can recover. Demo returns <code>recoveryToken</code> in the API response (no email).
+          </div>
+
+          <div class="panel">
+            <div class="field">
+              <label class="field-label" for="email">Email</label>
+              <input id="email" type="email" value="john.smith@mailinator.com" autofocus autocomplete="username"/>
+            </div>
+            <div class="actions">
+              <button id="request" class="btn-primary" type="button">Request reset</button>
+            </div>
+            <div class="field">
+              <label class="field-label" for="token">Recovery token</label>
+              <input id="token" type="text" placeholder="filled after Request reset"/>
+            </div>
+            <div class="field">
+              <label class="field-label" for="password">New password</label>
+              <input id="password" type="text" value="demo" autocomplete="new-password"/>
+            </div>
+            <div class="actions">
+              <button id="reset" class="btn-primary" type="button">Reset password</button>
+            </div>
+            <p id="status" class="status is-info" role="status">Ready - request a token, then reset.</p>
+          </div>
+        </div>
+
+        <div class="app-aside" id="aside">
+          <h3>Outcomes</h3>
+          <ul>
+            <li><strong>request success</strong> - token issued</li>
+            <li><strong>unknown_user</strong> - email not registered</li>
+            <li><strong>not_activated</strong> - pending account</li>
+            <li><strong>reset success</strong> - password changed</li>
+            <li><strong>invalid_token / expired</strong> - bad or timed-out token</li>
+          </ul>
+          <p><a href="http://localhost:3000/d/account-recovery">Open dashboard 14</a></p>
+        </div>
+      </div>
+
+      <div class="app-footer" id="footer">
+        <p>Demo UI for the monitoring stack.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var email = document.getElementById('email');
+      var token = document.getElementById('token');
+      var password = document.getElementById('password');
+      var status = document.getElementById('status');
+      var base = window.location.pathname.replace(/\/[^/]*$/, '') || '';
+
+      function setStatus(text, kind) {
+        status.textContent = text;
+        status.className = 'status' + (kind ? ' is-' + kind : '');
+      }
+
+      function post(path, body) {
+        return fetch(base + path, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        }).then(function (r) {
+          return r.json().then(function (j) {
+            return { ok: r.ok, status: r.status, body: j };
+          });
+        });
+      }
+
+      document.getElementById('request').addEventListener('click', function () {
+        setStatus('Requesting reset token...', 'info');
+        post('/rest/auth/recovery/request', { email: email.value })
+          .then(function (r) {
+            if (r.ok) {
+              token.value = r.body.recoveryToken || '';
+              setStatus('Token issued for member #' + r.body.memberId + ' — set a new password and Reset.', 'ok');
+            } else {
+              setStatus('Request failed: ' + (r.body.error || ('HTTP ' + r.status)), 'bad');
+            }
+          })
+          .catch(function (e) { setStatus('Request error: ' + e.message, 'bad'); });
+      });
+
+      document.getElementById('reset').addEventListener('click', function () {
+        setStatus('Resetting password...', 'info');
+        post('/rest/auth/recovery/reset', { token: token.value, password: password.value })
+          .then(function (r) {
+            if (r.ok) {
+              setStatus('Password reset for member #' + r.body.memberId + ' — Login with the new password.', 'ok');
+            } else {
+              setStatus('Reset failed: ' + (r.body.error || ('HTTP ' + r.status)), 'bad');
+            }
+          })
+          .catch(function (e) { setStatus('Reset error: ' + e.message, 'bad'); });
+      });
+
+      var params = new URLSearchParams(window.location.search);
+      if (params.get('token')) {
+        token.value = params.get('token');
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -9,7 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 /**
- * Demo credentials + activation state for a Member (dashboards 12–13).
+ * Demo credentials + activation/recovery state for a Member (dashboards 12–14).
  * Password is plain text on purpose — monitoring lab app, not a real IdP.
  */
 @SuppressWarnings("serial")
@@ -21,7 +21,7 @@ public class AuthAccount implements Serializable {
     public static final String STATUS_PENDING = "pending";
     public static final String STATUS_ACTIVATED = "activated";
 
-    /** Demo token lifetime (1 hour). Load script can force-expire via /auth/activation/expire. */
+    /** Demo token lifetime (1 hour). Load script can force-expire via expire helpers. */
     public static final long TOKEN_TTL_MS = 60L * 60L * 1000L;
 
     @Id
@@ -42,6 +42,12 @@ public class AuthAccount implements Serializable {
 
     @Column(name = "activated_at")
     private Long activatedAt;
+
+    @Column(name = "recovery_token", length = 64)
+    private String recoveryToken;
+
+    @Column(name = "recovery_expires_at")
+    private Long recoveryExpiresAt;
 
     public static String newToken() {
         return UUID.randomUUID().toString().replace("-", "").substring(0, 16);
@@ -101,5 +107,29 @@ public class AuthAccount implements Serializable {
 
     public boolean isTokenExpired(long nowMs) {
         return tokenExpiresAt != null && nowMs > tokenExpiresAt;
+    }
+
+    public String getRecoveryToken() {
+        return recoveryToken;
+    }
+
+    public void setRecoveryToken(String recoveryToken) {
+        this.recoveryToken = recoveryToken;
+    }
+
+    public Long getRecoveryExpiresAt() {
+        return recoveryExpiresAt;
+    }
+
+    public void setRecoveryExpiresAt(Long recoveryExpiresAt) {
+        this.recoveryExpiresAt = recoveryExpiresAt;
+    }
+
+    public boolean isRecoveryExpired(long nowMs) {
+        return recoveryExpiresAt != null && nowMs > recoveryExpiresAt;
+    }
+
+    public boolean hasOpenRecovery() {
+        return recoveryToken != null && !recoveryToken.isBlank();
     }
 }

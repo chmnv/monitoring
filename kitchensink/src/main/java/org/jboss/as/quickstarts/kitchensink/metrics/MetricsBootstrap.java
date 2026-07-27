@@ -68,7 +68,20 @@ public class MetricsBootstrap {
                 .setParameter("s", AuthAccount.STATUS_PENDING)
                 .getSingleResult();
         AppMetrics.ACCOUNTS_PENDING.set(pending);
+        // Recovery outcomes for dashboard 14.
+        for (String outcome : new String[] { "success", "unknown_user", "not_activated", "error" }) {
+            AppMetrics.RECOVERY_REQUESTS.labelValues(outcome).inc(0);
+        }
+        for (String outcome : new String[] { "success", "invalid_token", "expired", "error" }) {
+            AppMetrics.RECOVERY_RESETS.labelValues(outcome).inc(0);
+        }
+        AppMetrics.RECOVERY_COMPLETED.inc(0);
+        long recoveryOpen = em.createQuery(
+                        "select count(a) from AuthAccount a where a.recoveryToken is not null", Long.class)
+                .getSingleResult();
+        AppMetrics.RECOVERY_PENDING.set(recoveryOpen);
         log.info("Seeded kitchensink_members=" + count + " pending=" + pending
-                + " and failure/search/auth/activation series");
+                + " recoveryOpen=" + recoveryOpen
+                + " and failure/search/auth/activation/recovery series");
     }
 }

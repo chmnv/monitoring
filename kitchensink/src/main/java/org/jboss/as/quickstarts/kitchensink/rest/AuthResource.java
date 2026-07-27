@@ -24,10 +24,11 @@ import org.jboss.as.quickstarts.kitchensink.metrics.AppMetrics;
 import org.jboss.as.quickstarts.kitchensink.model.AuthAccount;
 import org.jboss.as.quickstarts.kitchensink.model.Member;
 import org.jboss.as.quickstarts.kitchensink.service.AccountActivation;
+import org.jboss.as.quickstarts.kitchensink.service.AccountRecovery;
 
 /**
- * Application login / logout / session (dashboard 12) and account activation (dashboard 13).
- * Distinct from WildFly management audit (dashboard 08).
+ * Application login / logout / session (dashboard 12), account activation (13),
+ * and password recovery (14). Distinct from WildFly management audit (dashboard 08).
  */
 @Path("/auth")
 @RequestScoped
@@ -49,6 +50,9 @@ public class AuthResource {
 
     @Inject
     private AccountActivation activation;
+
+    @Inject
+    private AccountRecovery recovery;
 
     @POST
     @Path("/login")
@@ -226,6 +230,135 @@ public class AuthResource {
         }
         AccountActivation.Result result = activation.expireForDemo(body.getToken().trim());
         if (result.outcome == AccountActivation.Outcome.INVALID_TOKEN) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(Map.of("error", "invalid_token"))
+                    .build();
+        }
+        return Response.ok(Map.of("status", "expired_for_demo", "memberId", result.memberId)).build();
+    }
+
+    /**
+     * Start password recovery: issue a reset token for an activated account (dashboard 14).
+     */
+    @POST
+    @Path("/recovery/request")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response recoveryRequest(RecoveryRequestBody body) {
+        try {
+            if (body == null || body.getEmail() == null || body.getEmail().isBlank()) {
+                AppMetrics.RECOVERY_REQUESTS.labelValues("error").inc();
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", "email required"))
+                        .build();
+            }
+            AccountRecovery.RequestResult result = recovery.request(body.getEmail().trim());
+            switch (result.outcome) {
+                case SUCCESS:
+                    AppMetrics.RECOVERY_REQUESTS.labelValues("success").inc();
+                    Map<String, Object> ok = new HashMap<>();
+                    ok.put("status", "token_issued");
+                    ok.put("memberId", result.memberId);
+                    ok.put("recoveryToken", result.recoveryToken);
+                    return Response.ok(ok).build();
+                case UNKNOWN_USER:
+                    AppMetrics.RECOVERY_REQUESTS.labelValues("unknown_user").inc();
+                    return Response.status(Response.Status.NOT_FOUND)
+                            .entity(Map.of("error", "unknown_user"))
+                            .build();
+                case NOT_ACTIVATED:
+                    AppMetrics.RECOVERY_REQUESTS.labelValues("not_activated").inc();
+                    return Response.status(Response.Status.FORBIDDEN)
+                            .entity(Map.of("error", "not_activated"))
+                            .build();
+                default:
+                    AppMetrics.RECOVERY_REQUESTS.labelValues("error").inc();
+                    return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                            .entity(Map.of("error", "error"))
+                            .build();
+            }
+        } catch (Exception e) {
+            log.warning("Recovery request failed: " + e.getMessage());
+            AppMetrics.RECOVERY_REQUESTS.labelValues("error").inc();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", e.getMessage() == null ? "error" : e.getMessage()))
+                    .build();
+        }
+    }
+
+    /**
+     * Consume a recovery token and set a new password (dashboard 14).
+     */
+    @POST
+    @Path("/recovery/reset")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response recoveryReset(RecoveryResetBody body) {
+        long start = System.nanoTime();
+        try {
+            if (body == null || body.getToken() == null || body.getToken().isBlank()) {
+                AppMetrics.RECOVERY_RESETS.labelValues("error").inc();
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", "token required"))
+                        .build();
+            }
+            String password = body.getPassword() == null ? "" : body.getPassword();
+            if (password.isBlank()) {
+                AppMetrics.RECOVERY_RESETS.labelValues("error").inc();
+                return Response.status(Response.Status.BAD_REQUEST)
+                        .entity(Map.of("error", "password required"))
+                        .build();
+            }
+            AccountRecovery.ResetResult result = recovery.reset(body.getToken().trim(), password);
+            switch (result.outcome) {
+                case SUCCESS:
+                    AppMetrics.RECOVERY_RESETS.labelValues("success").inc();
+                    Map<String, Object> ok = new HashMap<>();
+                    ok.put("status", "password_reset");
+                    ok.put("memberId", result.memberId);
+                    return Response.ok(ok).build();
+                case INVALID_TOKEN:
+                    AppMetrics.RECOVERY_RESETS.labelValues("invalid_token").inc();
+                    return Response.status(Response.Status.NOT_FOUND)
+                            .entity(Map.of("error", "invalid_token"))
+                            .build();
+                case EXPIRED:
+                    AppMetrics.RECOVERY_RESETS.labelValues("expired").inc();
+                    return Response.status(Response.Status.GONE)
+                            .entity(Map.of("error", "expired"))
+                            .build();
+                default:
+                    AppMetrics.RECOVERY_RESETS.labelValues("error").inc();
+                    return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                            .entity(Map.of("error", "error"))
+                            .build();
+            }
+        } catch (Exception e) {
+            log.warning("Recovery reset failed: " + e.getMessage());
+            AppMetrics.RECOVERY_RESETS.labelValues("error").inc();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+                    .entity(Map.of("error", e.getMessage() == null ? "error" : e.getMessage()))
+                    .build();
+        } finally {
+            AppMetrics.RECOVERY_DURATION.observe((System.nanoTime() - start) / 1_000_000_000.0);
+        }
+    }
+
+    /**
+     * Demo-only helper: force a recovery token to expire so load traffic can hit outcome=expired.
+     */
+    @POST
+    @Path("/recovery/expire")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response recoveryExpire(RecoveryResetBody body) {
+        if (body == null || body.getToken() == null || body.getToken().isBlank()) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(Map.of("error", "token required"))
+                    .build();
+        }
+        AccountRecovery.ResetResult result = recovery.expireForDemo(body.getToken().trim());
+        if (result.outcome == AccountRecovery.ResetOutcome.INVALID_TOKEN) {
             return Response.status(Response.Status.NOT_FOUND)
                     .entity(Map.of("error", "invalid_token"))
                     .build();
