@@ -97,6 +97,32 @@ public final class AppMetrics {
             .help("Number of members returned by a search")
             .register();
 
+    /**
+     * App login attempts for dashboard 12 (not WildFly management auth on board 08).
+     * Outcomes: success, bad_credentials, unknown_user, error.
+     */
+    public static final Counter AUTH_ATTEMPTS = Counter.builder()
+            .name("kitchensink_auth_attempts")
+            .help("Application login attempts by outcome")
+            .labelNames("outcome")
+            .register();
+
+    public static final Counter AUTH_LOGOUTS = Counter.builder()
+            .name("kitchensink_auth_logouts")
+            .help("Application logout events")
+            .register();
+
+    public static final Histogram AUTH_DURATION = Histogram.builder()
+            .name("kitchensink_auth_duration_seconds")
+            .help("Time spent handling a login request, in seconds")
+            .register();
+
+    /** Currently authenticated app sessions (login − logout / timeout). */
+    public static final Gauge ACTIVE_SESSIONS = Gauge.builder()
+            .name("kitchensink_active_sessions")
+            .help("Active application login sessions")
+            .register();
+
     private AppMetrics() {
         // utility holder — not instantiable
     }

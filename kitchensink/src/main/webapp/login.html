@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>kitchensink — Login</title>
+  <link rel="stylesheet" href="resources/css/screen.css"/>
+  <style>
+    #login-box { display: flex; flex-direction: column; gap: 8px; max-width: 320px; margin: 1em 0; }
+    #login-box label { display: flex; flex-direction: column; gap: 2px; }
+    #login-box input { padding: 4px 8px; }
+    #actions { display: flex; gap: 8px; margin-top: 4px; }
+    #status { color: #555; margin: 0.5em 0 1em; }
+    .nav { margin-bottom: 1em; }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div id="content">
+      <p class="nav">
+        <a href="index.jsf">← Registration</a> ·
+        <a href="search.html">Search</a>
+      </p>
+      <h1>Member login</h1>
+      <p>Minimal UI for dashboard <b>12 Authentication &amp; Sessions</b>.
+         Demo password for all accounts: <code>demo</code>
+         (seeded user: <code>john.smith@mailinator.com</code>).</p>
+
+      <div id="login-box">
+        <label>Email
+          <input id="email" type="email" value="john.smith@mailinator.com" autofocus/>
+        </label>
+        <label>Password
+          <input id="password" type="password" value="demo"/>
+        </label>
+        <div id="actions">
+          <button id="login" type="button">Login</button>
+          <button id="logout" type="button">Logout</button>
+          <button id="check" type="button">Check session</button>
+        </div>
+      </div>
+      <p id="status">Not checked yet.</p>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var email = document.getElementById('email');
+      var password = document.getElementById('password');
+      var status = document.getElementById('status');
+      var base = window.location.pathname.replace(/\/[^/]*$/, '') || '';
+
+      function post(path, body) {
+        var opts = {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: body ? { 'Content-Type': 'application/json' } : undefined,
+          body: body ? JSON.stringify(body) : undefined
+        };
+        return fetch(base + path, opts).then(function (r) {
+          return r.json().then(function (j) {
+            return { ok: r.ok, status: r.status, body: j };
+          });
+        });
+      }
+
+      function get(path) {
+        return fetch(base + path, { credentials: 'same-origin' }).then(function (r) {
+          return r.json().then(function (j) {
+            return { ok: r.ok, status: r.status, body: j };
+          });
+        });
+      }
+
+      document.getElementById('login').addEventListener('click', function () {
+        status.textContent = 'Logging in…';
+        post('/rest/auth/login', { email: email.value, password: password.value })
+          .then(function (r) {
+            if (r.ok) {
+              status.textContent = 'Logged in as ' + r.body.email + ' (id ' + r.body.memberId + ')';
+            } else {
+              status.textContent = 'Login failed (' + r.status + '): ' + (r.body.error || JSON.stringify(r.body));
+            }
+          })
+          .catch(function (e) { status.textContent = 'Login error: ' + e.message; });
+      });
+
+      document.getElementById('logout').addEventListener('click', function () {
+        status.textContent = 'Logging out…';
+        post('/rest/auth/logout')
+          .then(function (r) {
+            status.textContent = r.ok ? 'Logged out.' : 'Logout HTTP ' + r.status;
+          })
+          .catch(function (e) { status.textContent = 'Logout error: ' + e.message; });
+      });
+
+      document.getElementById('check').addEventListener('click', function () {
+        status.textContent = 'Checking…';
+        get('/rest/auth/session')
+          .then(function (r) {
+            if (r.ok && r.body.authenticated) {
+              status.textContent = 'Session active: ' + r.body.email + ' (since ' + r.body.loginAt + ')';
+            } else {
+              status.textContent = 'No active session.';
+            }
+          })
+          .catch(function (e) { status.textContent = 'Session check error: ' + e.message; });
+      });
+    })();
+  </script>
+</body>
+</html>

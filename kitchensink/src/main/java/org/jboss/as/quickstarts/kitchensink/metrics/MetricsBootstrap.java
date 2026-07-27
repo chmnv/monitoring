@@ -45,6 +45,12 @@ public class MetricsBootstrap {
         for (String outcome : new String[] { "hit", "zero", "empty", "refine", "error" }) {
             AppMetrics.SEARCH.labelValues(outcome).inc(0);
         }
-        log.info("Seeded kitchensink_members gauge = " + count + " and failure/search series");
+        // Auth outcomes for dashboard 12.
+        for (String outcome : new String[] { "success", "bad_credentials", "unknown_user", "error" }) {
+            AppMetrics.AUTH_ATTEMPTS.labelValues(outcome).inc(0);
+        }
+        AppMetrics.AUTH_LOGOUTS.inc(0);
+        AppMetrics.ACTIVE_SESSIONS.set(0);
+        log.info("Seeded kitchensink_members gauge = " + count + " and failure/search/auth series");
     }
 }

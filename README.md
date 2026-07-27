@@ -2,7 +2,8 @@
 
 Production-style, fully local observability stack for a Java app on **WildFly 39**.
 Infrastructure, JVM, application and business metrics go to Prometheus; logs and
-management audit go to Loki; Grafana visualizes and alerts by email.
+management audit go to Loki; Grafana visualizes and alerts via **Telegram + Jira**
+(email contact point exists but is not on the active notification route).
 
 ## Architecture
 
@@ -24,9 +25,13 @@ WildFly server.log + audit-log.log ──> Promtail ──> Loki (:3100) ──>
 **Alerts**
 
 ```
-Grafana Unified Alerting ──> Gmail SMTP ──> email (FIRING / RESOLVED)
+Grafana Unified Alerting ──> contact point "telegram"
+                              ├─ Telegram bot (FIRING / RESOLVED)
+                              └─ jira-bridge webhook (FIRING → Jira issue)
 ```
 
+Contact point `email-admin` is provisioned but **not** attached to the active policy
+(Telegram + Jira is the demo path).
 cAdvisor was evaluated and **dropped**: on Docker Desktop / WSL2 it cannot expose
 reliable per-container metrics. Host metrics come from `windows_exporter` instead.
 
@@ -91,8 +96,9 @@ The WAR is **never** committed — it is always built from `./kitchensink` durin
 | 09 | System Health & SLA | `system-health` | SLA, error budget, SLOs |
 | 10 | Registration Quality & Validation | `registration-quality` | Field/constraint friction (deep dive) |
 | 11 | Search & Discovery | `search-discovery` | Hit / zero / refine search quality |
+| 12 | Authentication & Sessions | `auth-sessions` | App login outcomes + active sessions |
 
-Target for mentor deliverable: **15** (see private notes / roadmap). Current live set: **11**.
+Target for mentor deliverable: **15** (see private notes / roadmap). Current live set: **12**.
 
 ## Application / business metrics
 
@@ -106,6 +112,10 @@ Target for mentor deliverable: **15** (see private notes / roadmap). Current liv
 - `kitchensink_searches_total{outcome}` — search hit / zero / empty / refine / error (dashboard 11)
 - `kitchensink_search_duration_seconds` — search latency histogram
 - `kitchensink_search_results` — result-set size histogram
+- `kitchensink_auth_attempts_total{outcome}` — login success / bad_credentials / unknown_user / error (dashboard 12)
+- `kitchensink_auth_logouts_total` — application logouts
+- `kitchensink_auth_duration_seconds` — login latency histogram
+- `kitchensink_active_sessions` — authenticated app sessions gauge
 - `kitchensink_registration_duration_seconds` — histogram (avg / p95 / p99)
 - `kitchensink_db_operation_duration_seconds{operation}` — JPA/DB op timing
   (`findAll`, `findById`, `findByEmail`, `persist` after flush, `countAll`)
@@ -121,9 +131,10 @@ Provisioned under `grafana/provisioning/alerting/`:
 | High Host Memory     | RAM used > 93% for 5m             | warning  |
 | Disk C Almost Full   | C: used > 90% for 5m              | warning  |
 
-SMTP / Telegram / Jira are wired via `.env` (see `smtp.example.env`). Contact point
+SMTP / Telegram / Jira are wired via `.env` (see `smtp.example.env`). Active contact point
 `telegram` notifies Telegram (HTML template) and posts a webhook to `jira-bridge`, which creates a
 Jira Cloud issue (native Grafana Jira notifier hits a removed Atlassian search API).
+`email-admin` remains available for optional use but is not on the default route.
 
 ## Prerequisites
 
@@ -154,6 +165,7 @@ Open:
 |-----|------|
 | http://localhost:8080/kitchensink | Application |
 | http://localhost:8080/kitchensink/search.html | Member search (dashboard 11) |
+| http://localhost:8080/kitchensink/login.html | Member login (dashboard 12) |
 | http://localhost:9990 | WildFly Management (`admin` / `admin`) |
 | http://localhost:9404/metrics | JMX Exporter |
 | http://localhost:8080/kitchensink/metrics | Business metrics |

@@ -46,7 +46,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Share of HTTP 500 responses. The 'errors' golden signal.",
+      "description": "Undertow listener/processing errors ÷ requests (wildfly_undertow_error_count). NOT HTTP 4xx/5xx response rate — app 404s do not increment this counter.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -72,9 +72,9 @@
       },
       "pluginVersion": "11.6.1",
       "targets": [
-        { "editorMode": "code", "expr": "100 * sum(rate(wildfly_undertow_error_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])) / clamp_min(sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])), 0.0001)", "legendFormat": "error %", "range": true, "refId": "A" }
+        { "editorMode": "code", "expr": "100 * sum(rate(wildfly_undertow_error_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])) / clamp_min(sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])), 0.0001)", "legendFormat": "listener err %", "range": true, "refId": "A" }
       ],
-      "title": "Error Rate",
+      "title": "Listener Error Rate",
       "type": "stat"
     },
     {
@@ -226,7 +226,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "HTTP 500 error rate per listener.",
+      "description": "Undertow listener/processing error rate per listener. Not HTTP status-class errors (4xx/5xx responses stay at 0 here under normal 404 load).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -251,9 +251,9 @@
       },
       "pluginVersion": "11.6.1",
       "targets": [
-        { "editorMode": "code", "expr": "rate(wildfly_undertow_error_count_total{job=\"wildfly-management\"}[5m])", "legendFormat": "{{http_listener}}{{https_listener}} 5xx", "range": true, "refId": "A" }
+        { "editorMode": "code", "expr": "rate(wildfly_undertow_error_count_total{job=\"wildfly-management\"}[5m])", "legendFormat": "{{http_listener}}{{https_listener}} listener err", "range": true, "refId": "A" }
       ],
-      "title": "Error Rate by Listener",
+      "title": "Listener Errors by Listener",
       "type": "timeseries"
     },
     {

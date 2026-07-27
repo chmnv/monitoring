@@ -143,7 +143,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "HTTP success rate over 5m (1 − Undertow 5xx / requests).",
+      "description": "1 − Undertow listener/processing errors ÷ requests over 5m. Not HTTP 2xx success — app 4xx/5xx responses do not move this metric.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -167,9 +167,9 @@
       },
       "pluginVersion": "11.6.1",
       "targets": [
-        { "editorMode": "code", "expr": "100 * (1 - sum(rate(wildfly_undertow_error_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])) / clamp_min(sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])), 0.0001))", "legendFormat": "HTTP OK %", "range": true, "refId": "A" }
+        { "editorMode": "code", "expr": "100 * (1 - sum(rate(wildfly_undertow_error_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])) / clamp_min(sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])), 0.0001))", "legendFormat": "no listener err %", "range": true, "refId": "A" }
       ],
-      "title": "HTTP Success (5m)",
+      "title": "Undertow OK (listener)",
       "type": "stat"
     },
     {
@@ -372,7 +372,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Undertow 5xx error rate. Yellow threshold = 1% error SLO.",
+      "description": "Undertow listener/processing error rate (not HTTP 4xx/5xx). Yellow threshold = 1% SLO on this metric.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -400,9 +400,9 @@
       },
       "pluginVersion": "11.6.1",
       "targets": [
-        { "editorMode": "code", "expr": "100 * sum(rate(wildfly_undertow_error_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])) / clamp_min(sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])), 0.0001)", "legendFormat": "error %", "range": true, "refId": "A" }
+        { "editorMode": "code", "expr": "100 * sum(rate(wildfly_undertow_error_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])) / clamp_min(sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])), 0.0001)", "legendFormat": "listener err %", "range": true, "refId": "A" }
       ],
-      "title": "Error Rate vs SLO (1%)",
+      "title": "Listener Error Rate vs SLO (1%)",
       "type": "timeseries"
     },
     {

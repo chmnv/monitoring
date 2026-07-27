@@ -18,6 +18,7 @@
 package org.jboss.as.quickstarts.kitchensink.service;
 
 import org.jboss.as.quickstarts.kitchensink.metrics.AppMetrics;
+import org.jboss.as.quickstarts.kitchensink.model.AuthAccount;
 import org.jboss.as.quickstarts.kitchensink.model.Member;
 
 import jakarta.annotation.Resource;
@@ -57,6 +58,13 @@ public class MemberRegistration {
         // Force the INSERT now so DB_OPERATION{persist} includes real SQL, not only
         // "add to persistence context" time (INSERT normally waits until flush/commit).
         em.flush();
+
+        // Demo login credentials for dashboard 12 (password always "demo").
+        AuthAccount account = new AuthAccount();
+        account.setMemberId(member.getId());
+        account.setPassword(AuthAccount.DEFAULT_PASSWORD);
+        em.persist(account);
+
         memberEventSrc.fire(member);
 
         final double persistSeconds = (System.nanoTime() - startNanos) / 1_000_000_000.0;
