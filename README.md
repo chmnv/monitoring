@@ -90,8 +90,9 @@ The WAR is **never** committed — it is always built from `./kitchensink` durin
 | 08 | WildFly Security & Audit | `wildfly-security` | Management audit trail |
 | 09 | System Health & SLA | `system-health` | SLA, error budget, SLOs |
 | 10 | Registration Quality & Validation | `registration-quality` | Field/constraint friction (deep dive) |
+| 11 | Search & Discovery | `search-discovery` | Hit / zero / refine search quality |
 
-Target for mentor deliverable: **15** (see private notes / roadmap). Current live set: **10**.
+Target for mentor deliverable: **15** (see private notes / roadmap). Current live set: **11**.
 
 ## Application / business metrics
 
@@ -102,6 +103,9 @@ Target for mentor deliverable: **15** (see private notes / roadmap). Current liv
 - `kitchensink_registration_attempts_total` — every POST attempt (success + failure)
 - `kitchensink_registration_failures_total{reason=...}` — validation / duplicate_email / error
 - `kitchensink_registration_field_failures_total{field,constraint}` — per-field deep dive (dashboard 10)
+- `kitchensink_searches_total{outcome}` — search hit / zero / empty / refine / error (dashboard 11)
+- `kitchensink_search_duration_seconds` — search latency histogram
+- `kitchensink_search_results` — result-set size histogram
 - `kitchensink_registration_duration_seconds` — histogram (avg / p95 / p99)
 - `kitchensink_db_operation_duration_seconds{operation}` — JPA/DB op timing
   (`findAll`, `findById`, `findByEmail`, `persist` after flush, `countAll`)
@@ -149,6 +153,7 @@ Open:
 | URL | What |
 |-----|------|
 | http://localhost:8080/kitchensink | Application |
+| http://localhost:8080/kitchensink/search.html | Member search (dashboard 11) |
 | http://localhost:9990 | WildFly Management (`admin` / `admin`) |
 | http://localhost:9404/metrics | JMX Exporter |
 | http://localhost:8080/kitchensink/metrics | Business metrics |
@@ -215,7 +220,7 @@ docker start wildfly
 - [x] WildFly image (multi-stage, JMX Exporter, management, audit log)
 - [x] kitchensink vendored in-repo + business metrics endpoint
 - [x] Prometheus (JMX + native `:9990` + kitchensink-app + windows)
-- [x] Grafana datasources + dashboards-as-code (01–10)
+- [x] Grafana datasources + dashboards-as-code (01–11)
 - [x] Loki + Promtail (server.log + audit-log)
 - [x] Email alerts (Gmail SMTP, rules as code)
 - [x] Telegram + Jira tickets (`jira-bridge` webhook)
