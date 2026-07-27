@@ -115,7 +115,7 @@ Provisioned under `grafana/provisioning/alerting/`:
 | Disk C Almost Full   | C: used > 90% for 5m              | warning  |
 
 SMTP / Telegram / Jira are wired via `.env` (see `smtp.example.env`). Contact point
-`telegram` notifies Telegram and posts a webhook to `jira-bridge`, which creates a
+`telegram` notifies Telegram (HTML template) and posts a webhook to `jira-bridge`, which creates a
 Jira Cloud issue (native Grafana Jira notifier hits a removed Atlassian search API).
 
 ## Prerequisites

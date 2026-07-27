@@ -1,0 +1,34 @@
+# Notification templates for contact points (Telegram-friendly HTML).
+apiVersion: 1
+
+templates:
+  - orgId: 1
+    name: telegram-alerts
+    template: |
+      {{ define "telegram.message" }}
+      {{ if eq .Status "firing" -}}
+      🔥 <b>FIRING</b>
+      {{- else -}}
+      ✅ <b>RESOLVED</b>
+      {{- end }}
+
+      {{- range .Alerts }}
+      <b>{{ .Labels.alertname }}</b>
+      Severity: <code>{{ .Labels.severity }}</code>
+      {{- if .Annotations.summary }}
+      {{ .Annotations.summary }}
+      {{- end }}
+      {{- if .Labels.instance }}
+      Instance: <code>{{ .Labels.instance }}</code>
+      {{- end }}
+      {{- if .Labels.job }}
+      Job: <code>{{ .Labels.job }}</code>
+      {{- end }}
+      {{- if .GeneratorURL }}
+      <a href="{{ .GeneratorURL }}">Open in Grafana</a>
+      {{- end }}
+      {{ end }}
+      {{- if eq .Status "firing" }}
+      Jira: a ticket is created automatically for this alert.
+      {{- end }}
+      {{ end }}

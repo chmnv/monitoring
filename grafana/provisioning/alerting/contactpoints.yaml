@@ -31,6 +31,8 @@ contactPoints:
           bottoken: $__env{TELEGRAM_BOT_TOKEN}
           chatid: "965378376"
           disable_web_page_preview: true
+          parse_mode: HTML
+          message: '{{ template "telegram.message" . }}'
       - uid: jira_webhook_recv
         type: webhook
         disableResolveMessage: true
