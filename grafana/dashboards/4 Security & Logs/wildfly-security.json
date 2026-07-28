@@ -73,7 +73,7 @@
     },
     {
       "datasource": { "type": "loki", "uid": "loki" },
-      "description": "Failed management operations (success=false). Red when > 0 вЂ” an operation was rejected/denied.",
+      "description": "Failed management operations (success=false). Red when > 0 — an operation was rejected/denied.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -103,7 +103,7 @@
     },
     {
       "datasource": { "type": "loki", "uid": "loki" },
-      "description": "Write operations (r/o = false) вЂ” changes to the server configuration/state, as opposed to reads.",
+      "description": "Write operations (r/o = false) — changes to the server configuration/state, as opposed to reads.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -284,7 +284,7 @@
     },
     {
       "datasource": { "type": "loki", "uid": "loki" },
-      "description": "Live feed of management operations rendered as 'user В· channel В· operation В· result'. Filter by user above. Expand a line for full label detail.",
+      "description": "Live feed of management operations rendered as 'user · channel · operation · result'. Filter by user above. Expand a line for full label detail.",
       "fieldConfig": { "defaults": {}, "overrides": [] },
       "gridPos": { "h": 8, "w": 16, "x": 8, "y": 12 },
       "id": 10,

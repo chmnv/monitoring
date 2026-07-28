@@ -46,7 +46,7 @@
     },
     {
       "datasource": { "type": "loki", "uid": "loki" },
-      "description": "ERROR-level lines in range. Red when > 0 вЂ” something needs attention.",
+      "description": "ERROR-level lines in range. Red when > 0 — something needs attention.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -281,7 +281,7 @@
     },
     {
       "datasource": { "type": "loki", "uid": "loki" },
-      "description": "Only WARN/ERROR lines (their attached stack traces come along via Promtail multiline) вЂ” the incident view.",
+      "description": "Only WARN/ERROR lines (their attached stack traces come along via Promtail multiline) — the incident view.",
       "fieldConfig": { "defaults": {}, "overrides": [] },
       "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 },
       "id": 10,

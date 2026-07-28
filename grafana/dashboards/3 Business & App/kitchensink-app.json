@@ -301,7 +301,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Member inventory over time вЂ” rises with each successful registration.",
+      "description": "Member inventory over time — rises with each successful registration.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -334,7 +334,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Failure breakdown by reason (absolute counts) вЂ” bar gauge for at-a-glance comparison.",
+      "description": "Failure breakdown by reason (absolute counts) — bar gauge for at-a-glance comparison.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -373,7 +373,7 @@
     },
     {
       "datasource": { "type": "loki", "uid": "loki" },
-      "description": "Live feed of registration-related lines from server.log (Registering вЂ¦ / validation messages).",
+      "description": "Live feed of registration-related lines from server.log (Registering … / validation messages).",
       "fieldConfig": { "defaults": {}, "overrides": [] },
       "gridPos": { "h": 8, "w": 16, "x": 8, "y": 20 },
       "id": 12,

@@ -192,7 +192,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Share of attempts that fail for any reason (1 в€’ success rate).",
+      "description": "Share of attempts that fail for any reason (1 − success rate).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -351,7 +351,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Total field failures since scrape start вЂ” which field hurts users most.",
+      "description": "Total field failures since scrape start — which field hurts users most.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -394,7 +394,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Constraint annotation that failed (Pattern, Email, Size, Digits, Unique, вЂ¦).",
+      "description": "Constraint annotation that failed (Pattern, Email, Size, Digits, Unique, …).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -428,7 +428,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Field Г— constraint matrix вЂ” pinpoint exact validation rule firing.",
+      "description": "Field × constraint matrix — pinpoint exact validation rule firing.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -462,7 +462,7 @@
           "refId": "A"
         }
       ],
-      "title": "Top Field Г— Constraint Failures",
+      "title": "Top Field × Constraint Failures",
       "transformations": [
         { "id": "labelsToFields", "options": {} },
         {

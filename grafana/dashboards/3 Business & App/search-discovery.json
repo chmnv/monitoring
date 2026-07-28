@@ -107,7 +107,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Valid queries with no matches вЂ” user found nothing useful.",
+      "description": "Valid queries with no matches — user found nothing useful.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -144,7 +144,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Short queries (len<=2) вЂ” exploratory / needs refine.",
+      "description": "Short queries (len<=2) — exploratory / needs refine.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -175,7 +175,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "p95 end-to-end search latency (API + DB). Not pool timing вЂ” that is dashboard 05.",
+      "description": "p95 end-to-end search latency (API + DB). Not pool timing — that is dashboard 05.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },

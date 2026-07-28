@@ -21,7 +21,7 @@
   "panels": [
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Average scrape availability across all Prometheus jobs over the last 24 hours (platform reachability SLA вЂ” measures whether targets respond to scrapes, not app correctness).",
+      "description": "Rolling 1h scrape availability across all Prometheus jobs (targets responding to scrapes, not app correctness). Short window reflects current steady state — long windows are skewed by frequent dev restarts.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -45,14 +45,14 @@
       },
       "pluginVersion": "11.6.1",
       "targets": [
-        { "editorMode": "code", "expr": "100 * avg(avg_over_time(up[24h]))", "legendFormat": "SLA 24h", "range": true, "refId": "A" }
+        { "editorMode": "code", "expr": "100 * avg(avg_over_time(up[1h]))", "legendFormat": "avail 1h", "range": true, "refId": "A" }
       ],
-      "title": "Platform SLA (24h)",
+      "title": "Availability (1h)",
       "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Average scrape availability across all jobs over the last 7 days.",
+      "description": "Rolling 6h scrape availability across all jobs (targets responding to scrapes).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -76,14 +76,14 @@
       },
       "pluginVersion": "11.6.1",
       "targets": [
-        { "editorMode": "code", "expr": "100 * avg(avg_over_time(up[7d]))", "legendFormat": "SLA 7d", "range": true, "refId": "A" }
+        { "editorMode": "code", "expr": "100 * avg(avg_over_time(up[6h]))", "legendFormat": "avail 6h", "range": true, "refId": "A" }
       ],
-      "title": "Platform SLA (7d)",
+      "title": "Availability (6h)",
       "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Remaining error budget for a 99.9% availability SLO over 7 days. 0% means the budget is exhausted (availability below 99.9%).",
+      "description": "Remaining error budget for a 99.5% availability SLO over a rolling 6h window. 0% = budget exhausted. A rolling 6h window is used because week-long windows are dominated by development restarts.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -109,14 +109,14 @@
       },
       "pluginVersion": "11.6.1",
       "targets": [
-        { "editorMode": "code", "expr": "clamp_min(100 * (avg(avg_over_time(up[7d])) - 0.999) / 0.001, 0)", "legendFormat": "budget left", "range": true, "refId": "A" }
+        { "editorMode": "code", "expr": "clamp_min(100 * (avg(avg_over_time(up[6h])) - 0.995) / 0.005, 0)", "legendFormat": "budget left", "range": true, "refId": "A" }
       ],
-      "title": "Error Budget Left (99.9%/7d)",
+      "title": "Error Budget Left (99.5%/6h)",
       "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "1 в€’ Undertow listener/processing errors Г· requests over 5m. Not HTTP 2xx success вЂ” app 4xx/5xx responses do not move this metric.",
+      "description": "1 − Undertow listener/processing errors ÷ requests over 5m. Not HTTP 2xx success — app 4xx/5xx responses do not move this metric.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -279,7 +279,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Prometheus scrape latency per job вЂ” high values warn that a target is slow or overloaded.",
+      "description": "Prometheus scrape latency per job — high values warn that a target is slow or overloaded.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },

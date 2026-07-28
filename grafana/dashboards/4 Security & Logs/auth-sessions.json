@@ -183,7 +183,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Currently authenticated app HTTP sessions (login в€’ logout / timeout).",
+      "description": "Currently authenticated app HTTP sessions (login − logout / timeout).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -394,7 +394,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Logout volume vs successful logins вЂ” session turnover.",
+      "description": "Logout volume vs successful logins — session turnover.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },

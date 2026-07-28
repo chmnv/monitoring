@@ -373,7 +373,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Funnel: recovery requests в†’ successful resets в†’ login success rate context.",
+      "description": "Funnel: recovery requests → successful resets → login success rate context.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -408,7 +408,7 @@
           "refId": "C"
         }
       ],
-      "title": "Request в†’ Reset Funnel",
+      "title": "Request → Reset Funnel",
       "type": "timeseries"
     }
   ],

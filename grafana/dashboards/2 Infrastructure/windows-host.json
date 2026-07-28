@@ -460,7 +460,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Per-core CPU utilization distribution over time. Each core's busy % is bucketed; color shows how many cores sit in each utilization band вЂ” instantly reveals core imbalance or a single saturated core.",
+      "description": "Per-core CPU utilization distribution over time. Each core's busy % is bucketed; color shows how many cores sit in each utilization band — instantly reveals core imbalance or a single saturated core.",
       "fieldConfig": {
         "defaults": {
           "custom": {

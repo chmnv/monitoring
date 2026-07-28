@@ -335,7 +335,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Role distribution (panel inside 15 вЂ” not a separate board).",
+      "description": "Role distribution (panel inside 15 — not a separate board).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },

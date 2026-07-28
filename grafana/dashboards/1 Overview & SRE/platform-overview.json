@@ -756,7 +756,7 @@
       "links": [
         { "title": "Drill down: JVM Overview", "url": "/d/jvm-overview?${__url_time_range}", "targetBlank": false }
       ],
-      "title": "JVM Memory вЂ” Heap & Non-Heap",
+      "title": "JVM Memory — Heap & Non-Heap",
       "type": "timeseries"
     },
     {
@@ -877,7 +877,7 @@
       "links": [
         { "title": "Drill down: Windows Host", "url": "/d/windows-host?${__url_time_range}", "targetBlank": false }
       ],
-      "title": "CPU вЂ” Host vs WildFly",
+      "title": "CPU — Host vs WildFly",
       "type": "timeseries"
     },
     {
@@ -916,7 +916,7 @@
         { "title": "Drill down: JVM Overview", "url": "/d/jvm-overview?${__url_time_range}", "targetBlank": false },
         { "title": "Drill down: Windows Host", "url": "/d/windows-host?${__url_time_range}", "targetBlank": false }
       ],
-      "title": "Memory вЂ” Host vs WildFly Heap",
+      "title": "Memory — Host vs WildFly Heap",
       "type": "timeseries"
     },
     {
@@ -997,7 +997,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Disk space used per volume on the Windows host. Yellow в‰Ґ70%, red в‰Ґ90% вЂ” capacity headroom at a glance.",
+      "description": "Disk space used per volume on the Windows host. Yellow ≥70%, red ≥90% — capacity headroom at a glance.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
