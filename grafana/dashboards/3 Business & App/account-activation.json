@@ -422,19 +422,19 @@
           "refId": "B"
         }
       ],
-      "title": "Register → Activate Funnel",
+      "title": "Register в†’ Activate Funnel",
       "type": "timeseries"
     }
   ],
   "refresh": "10s",
   "schemaVersion": 39,
-  "tags": ["kitchensink", "activation", "auth", "business"],
+  "tags": ["grp-business", "kitchensink", "activation", "auth", "business"],
   "templating": { "list": [] },
   "time": { "from": "now-15m", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
   "title": "13 Account Activation",
   "uid": "account-activation",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }

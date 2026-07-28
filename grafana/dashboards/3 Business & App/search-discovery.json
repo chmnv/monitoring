@@ -20,23 +20,23 @@
       "asDropdown": false,
       "icon": "dashboard",
       "keepTime": true,
-      "title": "12 Auth Sessions",
+      "title": "05 DB timing",
       "type": "link",
-      "url": "/d/auth-sessions"
+      "url": "/d/wildfly-db"
     },
     {
       "asDropdown": false,
       "icon": "dashboard",
       "keepTime": true,
-      "title": "13 Activation",
+      "title": "10 Registration Quality",
       "type": "link",
-      "url": "/d/account-activation"
+      "url": "/d/registration-quality"
     }
   ],
   "panels": [
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Recovery request attempts per second (all outcomes).",
+      "description": "Member searches per second (all outcomes).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -57,17 +57,17 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "sum(rate(kitchensink_recovery_requests_total{job=\"kitchensink-app\"}[5m]))",
-          "legendFormat": "requests/s",
+          "expr": "sum(rate(kitchensink_searches_total{job=\"kitchensink-app\"}[5m]))",
+          "legendFormat": "searches/s",
           "refId": "A"
         }
       ],
-      "title": "Requests / sec",
+      "title": "Searches / sec",
       "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Share of password resets that succeeded (only when resets > 0).",
+      "description": "Share of searches that returned at least one member (excludes refine/empty).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -78,8 +78,8 @@
             "mode": "absolute",
             "steps": [
               { "color": "red", "value": null },
-              { "color": "orange", "value": 0.4 },
-              { "color": "green", "value": 0.65 }
+              { "color": "orange", "value": 0.35 },
+              { "color": "green", "value": 0.55 }
             ]
           },
           "unit": "percentunit"
@@ -97,30 +97,29 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "sum(rate(kitchensink_recovery_resets_total{job=\"kitchensink-app\",outcome=\"success\"}[5m])) / sum(rate(kitchensink_recovery_resets_total{job=\"kitchensink-app\"}[5m]))",
-          "legendFormat": "success",
+          "expr": "sum(rate(kitchensink_searches_total{job=\"kitchensink-app\",outcome=\"hit\"}[5m])) / sum(rate(kitchensink_searches_total{job=\"kitchensink-app\",outcome=~\"hit|zero\"}[5m]))",
+          "legendFormat": "hit rate",
           "refId": "A"
         }
       ],
-      "title": "Reset Success Rate",
+      "title": "Hit Rate (hit vs zero)",
       "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Accounts with an outstanding recovery token.",
+      "description": "Valid queries with no matches вЂ” user found nothing useful.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
-          "decimals": 0,
+          "decimals": 2,
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "orange", "value": 3 },
-              { "color": "red", "value": 10 }
+              { "color": "text", "value": null },
+              { "color": "orange", "value": 0.05 }
             ]
           },
-          "unit": "short"
+          "unit": "ops"
         },
         "overrides": []
       },
@@ -135,28 +134,22 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "kitchensink_recovery_pending{job=\"kitchensink-app\"}",
-          "legendFormat": "open",
+          "expr": "sum(rate(kitchensink_searches_total{job=\"kitchensink-app\",outcome=\"zero\"}[5m]))",
+          "legendFormat": "zero",
           "refId": "A"
         }
       ],
-      "title": "Open Recovery Tokens",
+      "title": "Zero-result / sec",
       "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Expired recovery tokens / sec.",
+      "description": "Short queries (len<=2) вЂ” exploratory / needs refine.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
           "decimals": 2,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "text", "value": null },
-              { "color": "orange", "value": 0.02 }
-            ]
-          },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "text", "value": null }] },
           "unit": "ops"
         },
         "overrides": []
@@ -172,48 +165,17 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "sum(rate(kitchensink_recovery_resets_total{job=\"kitchensink-app\",outcome=\"expired\"}[5m]))",
-          "legendFormat": "expired",
+          "expr": "sum(rate(kitchensink_searches_total{job=\"kitchensink-app\",outcome=\"refine\"}[5m]))",
+          "legendFormat": "refine",
           "refId": "A"
         }
       ],
-      "title": "Expired / sec",
+      "title": "Refine (short q) / sec",
       "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Successful logins after recovery traffic (bridge to dashboard 12).",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "decimals": 2,
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "text", "value": null }] },
-          "unit": "ops"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
-      "id": 5,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "value"
-      },
-      "pluginVersion": "11.6.1",
-      "targets": [
-        {
-          "expr": "sum(rate(kitchensink_auth_attempts_total{job=\"kitchensink-app\",outcome=\"success\"}[5m]))",
-          "legendFormat": "login ok",
-          "refId": "A"
-        }
-      ],
-      "title": "Post-reset Login OK",
-      "type": "stat"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "p95 recovery reset handling latency.",
+      "description": "p95 end-to-end search latency (API + DB). Not pool timing вЂ” that is dashboard 05.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -230,8 +192,8 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
-      "id": 6,
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+      "id": 5,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -241,17 +203,48 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum(rate(kitchensink_recovery_duration_seconds_bucket{job=\"kitchensink-app\"}[5m])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(kitchensink_search_duration_seconds_bucket{job=\"kitchensink-app\"}[5m])) by (le))",
           "legendFormat": "p95",
           "refId": "A"
         }
       ],
-      "title": "Reset p95",
+      "title": "Search p95",
       "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Can the user start recovery? Request outcomes over time.",
+      "description": "Average number of members returned per search.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "decimals": 1,
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "text", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+      "id": 6,
+      "options": {
+        "colorMode": "none",
+        "graphMode": "area",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        {
+          "expr": "(sum(rate(kitchensink_search_results_sum{job=\"kitchensink-app\"}[5m])) / clamp_min(sum(rate(kitchensink_search_results_count{job=\"kitchensink-app\"}[5m])), 1e-9)) or vector(0)",
+          "legendFormat": "avg results",
+          "refId": "A"
+        }
+      ],
+      "title": "Avg Results / Search",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Does search return useful results? Outcomes over time.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -272,28 +265,27 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "sum by (outcome) (rate(kitchensink_recovery_requests_total{job=\"kitchensink-app\"}[5m]))",
+          "expr": "sum by (outcome) (rate(kitchensink_searches_total{job=\"kitchensink-app\"}[5m]))",
           "legendFormat": "{{outcome}}",
           "refId": "A"
         }
       ],
-      "title": "Recovery Request Outcomes",
+      "title": "Search Outcomes",
       "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Does the token complete the reset? Reset outcomes over time.",
+      "description": "Search latency avg / p95 / p99.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
           "custom": {
             "drawStyle": "line",
-            "fillOpacity": 20,
+            "fillOpacity": 10,
             "lineWidth": 2,
-            "showPoints": "never",
-            "stacking": { "group": "A", "mode": "normal" }
+            "showPoints": "never"
           },
-          "unit": "ops"
+          "unit": "s"
         },
         "overrides": []
       },
@@ -303,17 +295,27 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "sum by (outcome) (rate(kitchensink_recovery_resets_total{job=\"kitchensink-app\"}[5m]))",
-          "legendFormat": "{{outcome}}",
+          "expr": "sum(rate(kitchensink_search_duration_seconds_sum{job=\"kitchensink-app\"}[5m])) / clamp_min(sum(rate(kitchensink_search_duration_seconds_count{job=\"kitchensink-app\"}[5m])), 1e-9)",
+          "legendFormat": "avg",
           "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(kitchensink_search_duration_seconds_bucket{job=\"kitchensink-app\"}[5m])) by (le))",
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(kitchensink_search_duration_seconds_bucket{job=\"kitchensink-app\"}[5m])) by (le))",
+          "legendFormat": "p99",
+          "refId": "C"
         }
       ],
-      "title": "Password Reset Outcomes",
+      "title": "Search Duration",
       "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Request outcome totals since process start.",
+      "description": "Outcome totals since process start.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -333,47 +335,52 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "sum by (outcome) (kitchensink_recovery_requests_total{job=\"kitchensink-app\"})",
+          "expr": "sum by (outcome) (kitchensink_searches_total{job=\"kitchensink-app\"})",
           "legendFormat": "{{outcome}}",
           "refId": "A"
         }
       ],
-      "title": "Requests (total)",
+      "title": "Outcomes (total)",
       "type": "bargauge"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Reset outcome totals since process start.",
+      "description": "JPA search operation timing only (dashboard 05 context).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
-          "unit": "short"
+          "custom": {
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
+          },
+          "unit": "s"
         },
         "overrides": []
       },
       "gridPos": { "h": 8, "w": 8, "x": 8, "y": 12 },
       "id": 10,
-      "options": {
-        "displayMode": "gradient",
-        "orientation": "horizontal",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "showUnfilled": true
-      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "sum by (outcome) (kitchensink_recovery_resets_total{job=\"kitchensink-app\"})",
-          "legendFormat": "{{outcome}}",
+          "expr": "sum(rate(kitchensink_db_operation_duration_seconds_sum{job=\"kitchensink-app\",operation=\"search\"}[5m])) / clamp_min(sum(rate(kitchensink_db_operation_duration_seconds_count{job=\"kitchensink-app\",operation=\"search\"}[5m])), 1e-9)",
+          "legendFormat": "search DB avg",
           "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(kitchensink_db_operation_duration_seconds_bucket{job=\"kitchensink-app\",operation=\"search\"}[5m])) by (le))",
+          "legendFormat": "search DB p95",
+          "refId": "B"
         }
       ],
-      "title": "Resets (total)",
-      "type": "bargauge"
+      "title": "DB Op: search",
+      "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Funnel: recovery requests → successful resets → login success rate context.",
+      "description": "Average result-set size over time.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -383,7 +390,7 @@
             "lineWidth": 2,
             "showPoints": "never"
           },
-          "unit": "ops"
+          "unit": "short"
         },
         "overrides": []
       },
@@ -393,34 +400,24 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "sum(rate(kitchensink_recovery_requests_total{job=\"kitchensink-app\",outcome=\"success\"}[5m]))",
-          "legendFormat": "token issued/s",
+          "expr": "(sum(rate(kitchensink_search_results_sum{job=\"kitchensink-app\"}[5m])) / clamp_min(sum(rate(kitchensink_search_results_count{job=\"kitchensink-app\"}[5m])), 1e-9)) or vector(0)",
+          "legendFormat": "avg size",
           "refId": "A"
-        },
-        {
-          "expr": "sum(rate(kitchensink_recovery_resets_total{job=\"kitchensink-app\",outcome=\"success\"}[5m]))",
-          "legendFormat": "reset ok/s",
-          "refId": "B"
-        },
-        {
-          "expr": "sum(rate(kitchensink_recovery_completed_total{job=\"kitchensink-app\"}[5m]))",
-          "legendFormat": "completed/s",
-          "refId": "C"
         }
       ],
-      "title": "Request → Reset Funnel",
+      "title": "Result Size (avg)",
       "type": "timeseries"
     }
   ],
   "refresh": "10s",
   "schemaVersion": 39,
-  "tags": ["kitchensink", "recovery", "auth", "business"],
+  "tags": ["grp-business", "kitchensink", "search", "discovery", "business"],
   "templating": { "list": [] },
   "time": { "from": "now-15m", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
-  "title": "14 Account Recovery",
-  "uid": "account-recovery",
-  "version": 1,
+  "title": "11 Search & Discovery",
+  "uid": "search-discovery",
+  "version": 2,
   "weekStart": ""
 }

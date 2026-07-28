@@ -48,7 +48,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Undertow listener/processing errors ÷ requests (wildfly_undertow_error_count). NOT HTTP 4xx/5xx response rate — app 404s do not increment this counter.",
+      "description": "Undertow listener/processing errors Г· requests (wildfly_undertow_error_count). NOT HTTP 4xx/5xx response rate вЂ” app 404s do not increment this counter.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -112,7 +112,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Currently active Undertow HTTP sessions (transport-level sessions, NOT authenticated app logins — those are on dashboard 12).",
+      "description": "Currently active Undertow HTTP sessions (transport-level sessions, NOT authenticated app logins вЂ” those are on dashboard 12).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -428,12 +428,12 @@
   "preload": false,
   "refresh": "30s",
   "schemaVersion": 41,
-  "tags": ["wildfly", "http", "undertow", "datasources", "requests", "sre", "prometheus"],
+  "tags": ["grp-infra", "wildfly", "http", "undertow", "datasources", "requests", "sre", "prometheus"],
   "templating": { "list": [] },
   "time": { "from": "now-1h", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
   "title": "04 WildFly HTTP & Datasources",
   "uid": "wildfly-http-db",
-  "version": 4
+  "version": 5
 }

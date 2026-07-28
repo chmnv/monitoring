@@ -28,15 +28,15 @@
       "asDropdown": false,
       "icon": "dashboard",
       "keepTime": true,
-      "title": "08 WildFly Audit",
+      "title": "13 Activation",
       "type": "link",
-      "url": "/d/wildfly-security"
+      "url": "/d/account-activation"
     }
   ],
   "panels": [
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Privileged operation attempts per second (all outcomes).",
+      "description": "Recovery request attempts per second (all outcomes).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -57,17 +57,17 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "sum(rate(kitchensink_authz_attempts_total{job=\"kitchensink-app\"}[5m]))",
-          "legendFormat": "authz/s",
+          "expr": "sum(rate(kitchensink_recovery_requests_total{job=\"kitchensink-app\"}[5m]))",
+          "legendFormat": "requests/s",
           "refId": "A"
         }
       ],
-      "title": "Authz / sec",
+      "title": "Requests / sec",
       "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Share of privileged attempts that were allowed (when attempts > 0).",
+      "description": "Share of password resets that succeeded (only when resets > 0).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -78,8 +78,8 @@
             "mode": "absolute",
             "steps": [
               { "color": "red", "value": null },
-              { "color": "orange", "value": 0.35 },
-              { "color": "green", "value": 0.55 }
+              { "color": "orange", "value": 0.4 },
+              { "color": "green", "value": 0.65 }
             ]
           },
           "unit": "percentunit"
@@ -97,17 +97,55 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "sum(rate(kitchensink_authz_attempts_total{job=\"kitchensink-app\",outcome=\"allowed\"}[5m])) / sum(rate(kitchensink_authz_attempts_total{job=\"kitchensink-app\"}[5m]))",
-          "legendFormat": "allowed",
+          "expr": "sum(rate(kitchensink_recovery_resets_total{job=\"kitchensink-app\",outcome=\"success\"}[5m])) / sum(rate(kitchensink_recovery_resets_total{job=\"kitchensink-app\"}[5m]))",
+          "legendFormat": "success",
           "refId": "A"
         }
       ],
-      "title": "Allow Rate",
+      "title": "Reset Success Rate",
       "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Denied privileged attempts / sec (wrong role).",
+      "description": "Accounts with an outstanding recovery token.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 3 },
+              { "color": "red", "value": 10 }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
+      "id": 3,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        {
+          "expr": "kitchensink_recovery_pending{job=\"kitchensink-app\"}",
+          "legendFormat": "open",
+          "refId": "A"
+        }
+      ],
+      "title": "Open Recovery Tokens",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Expired recovery tokens / sec.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -123,37 +161,6 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 4, "x": 8, "y": 0 },
-      "id": 3,
-      "options": {
-        "colorMode": "value",
-        "graphMode": "area",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "value"
-      },
-      "pluginVersion": "11.6.1",
-      "targets": [
-        {
-          "expr": "sum(rate(kitchensink_authz_attempts_total{job=\"kitchensink-app\",outcome=\"denied\"}[5m]))",
-          "legendFormat": "denied",
-          "refId": "A"
-        }
-      ],
-      "title": "Denied / sec",
-      "type": "stat"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Privileged calls with no app session.",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "decimals": 2,
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "text", "value": null }] },
-          "unit": "ops"
-        },
-        "overrides": []
-      },
       "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
       "id": 4,
       "options": {
@@ -165,23 +172,23 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "sum(rate(kitchensink_authz_attempts_total{job=\"kitchensink-app\",outcome=\"unauthenticated\"}[5m]))",
-          "legendFormat": "unauth",
+          "expr": "sum(rate(kitchensink_recovery_resets_total{job=\"kitchensink-app\",outcome=\"expired\"}[5m]))",
+          "legendFormat": "expired",
           "refId": "A"
         }
       ],
-      "title": "Unauthenticated / sec",
+      "title": "Expired / sec",
       "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Accounts with role=admin.",
+      "description": "Successful logins after recovery traffic (bridge to dashboard 12).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
-          "decimals": 0,
+          "decimals": 2,
           "thresholds": { "mode": "absolute", "steps": [{ "color": "text", "value": null }] },
-          "unit": "short"
+          "unit": "ops"
         },
         "overrides": []
       },
@@ -196,17 +203,17 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "kitchensink_accounts_by_role{job=\"kitchensink-app\",role=\"admin\"}",
-          "legendFormat": "admins",
+          "expr": "sum(rate(kitchensink_auth_attempts_total{job=\"kitchensink-app\",outcome=\"success\"}[5m]))",
+          "legendFormat": "login ok",
           "refId": "A"
         }
       ],
-      "title": "Admins",
+      "title": "Post-reset Login OK",
       "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "p95 privileged op latency (all operations).",
+      "description": "p95 recovery reset handling latency.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -234,17 +241,17 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum(rate(kitchensink_authz_duration_seconds_bucket{job=\"kitchensink-app\"}[5m])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(kitchensink_recovery_duration_seconds_bucket{job=\"kitchensink-app\"}[5m])) by (le))",
           "legendFormat": "p95",
           "refId": "A"
         }
       ],
-      "title": "Authz p95",
+      "title": "Reset p95",
       "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Are privileged actions correctly allowed or denied?",
+      "description": "Can the user start recovery? Request outcomes over time.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -265,25 +272,26 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "sum by (outcome) (rate(kitchensink_authz_attempts_total{job=\"kitchensink-app\"}[5m]))",
+          "expr": "sum by (outcome) (rate(kitchensink_recovery_requests_total{job=\"kitchensink-app\"}[5m]))",
           "legendFormat": "{{outcome}}",
           "refId": "A"
         }
       ],
-      "title": "Authz Outcomes",
+      "title": "Recovery Request Outcomes",
       "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Allowed vs denied split by privileged operation.",
+      "description": "Does the token complete the reset? Reset outcomes over time.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
           "custom": {
             "drawStyle": "line",
-            "fillOpacity": 15,
+            "fillOpacity": 20,
             "lineWidth": 2,
-            "showPoints": "never"
+            "showPoints": "never",
+            "stacking": { "group": "A", "mode": "normal" }
           },
           "unit": "ops"
         },
@@ -295,17 +303,17 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "sum by (operation, outcome) (rate(kitchensink_authz_attempts_total{job=\"kitchensink-app\",outcome=~\"allowed|denied\"}[5m]))",
-          "legendFormat": "{{operation}} {{outcome}}",
+          "expr": "sum by (outcome) (rate(kitchensink_recovery_resets_total{job=\"kitchensink-app\"}[5m]))",
+          "legendFormat": "{{outcome}}",
           "refId": "A"
         }
       ],
-      "title": "Allow / Deny by Operation",
+      "title": "Password Reset Outcomes",
       "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Outcome totals since process start.",
+      "description": "Request outcome totals since process start.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -325,17 +333,17 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "sum by (outcome) (kitchensink_authz_attempts_total{job=\"kitchensink-app\"})",
+          "expr": "sum by (outcome) (kitchensink_recovery_requests_total{job=\"kitchensink-app\"})",
           "legendFormat": "{{outcome}}",
           "refId": "A"
         }
       ],
-      "title": "Outcomes (total)",
+      "title": "Requests (total)",
       "type": "bargauge"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Role distribution (panel inside 15 — not a separate board).",
+      "description": "Reset outcome totals since process start.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -355,27 +363,27 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "kitchensink_accounts_by_role{job=\"kitchensink-app\"}",
-          "legendFormat": "{{role}}",
+          "expr": "sum by (outcome) (kitchensink_recovery_resets_total{job=\"kitchensink-app\"})",
+          "legendFormat": "{{outcome}}",
           "refId": "A"
         }
       ],
-      "title": "Accounts by Role",
+      "title": "Resets (total)",
       "type": "bargauge"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Latency by privileged operation.",
+      "description": "Funnel: recovery requests в†’ successful resets в†’ login success rate context.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
           "custom": {
             "drawStyle": "line",
-            "fillOpacity": 10,
+            "fillOpacity": 15,
             "lineWidth": 2,
             "showPoints": "never"
           },
-          "unit": "s"
+          "unit": "ops"
         },
         "overrides": []
       },
@@ -385,24 +393,34 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "sum by (operation) (rate(kitchensink_authz_duration_seconds_sum{job=\"kitchensink-app\"}[5m])) / clamp_min(sum by (operation) (rate(kitchensink_authz_duration_seconds_count{job=\"kitchensink-app\"}[5m])), 1e-9)",
-          "legendFormat": "{{operation}} avg",
+          "expr": "sum(rate(kitchensink_recovery_requests_total{job=\"kitchensink-app\",outcome=\"success\"}[5m]))",
+          "legendFormat": "token issued/s",
           "refId": "A"
+        },
+        {
+          "expr": "sum(rate(kitchensink_recovery_resets_total{job=\"kitchensink-app\",outcome=\"success\"}[5m]))",
+          "legendFormat": "reset ok/s",
+          "refId": "B"
+        },
+        {
+          "expr": "sum(rate(kitchensink_recovery_completed_total{job=\"kitchensink-app\"}[5m]))",
+          "legendFormat": "completed/s",
+          "refId": "C"
         }
       ],
-      "title": "Authz Duration by Op",
+      "title": "Request в†’ Reset Funnel",
       "type": "timeseries"
     }
   ],
   "refresh": "10s",
   "schemaVersion": 39,
-  "tags": ["kitchensink", "authorization", "auth", "business"],
+  "tags": ["grp-business", "kitchensink", "recovery", "auth", "business"],
   "templating": { "list": [] },
   "time": { "from": "now-15m", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
-  "title": "15 Authorization & Privileged Ops",
-  "uid": "app-authorization",
-  "version": 1,
+  "title": "14 Account Recovery",
+  "uid": "account-recovery",
+  "version": 2,
   "weekStart": ""
 }

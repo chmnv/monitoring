@@ -19,19 +19,32 @@
     {
       "asDropdown": false,
       "icon": "dashboard",
-      "includeVars": false,
       "keepTime": true,
-      "targetBlank": false,
-      "title": "06 App KPI summary",
-      "tooltip": "High-level business KPIs (keep this board for totals)",
+      "title": "08 Security Audit",
       "type": "link",
-      "url": "/d/kitchensink-app"
+      "url": "/d/wildfly-security"
+    },
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "keepTime": true,
+      "title": "11 Search",
+      "type": "link",
+      "url": "/d/search-discovery"
+    },
+    {
+      "asDropdown": false,
+      "icon": "dashboard",
+      "keepTime": true,
+      "title": "10 Registration",
+      "type": "link",
+      "url": "/d/registration-quality"
     }
   ],
   "panels": [
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Registration POSTs per second (success + failure). Friction base rate.",
+      "description": "Application login attempts per second (all outcomes). Not WildFly management auth.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -46,27 +59,23 @@
       "options": {
         "colorMode": "none",
         "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "value"
       },
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "editorMode": "code",
-          "expr": "rate(kitchensink_registration_attempts_total{job=\"kitchensink-app\"}[5m])",
-          "legendFormat": "attempts/s",
-          "range": true,
+          "expr": "sum(rate(kitchensink_auth_attempts_total{job=\"kitchensink-app\"}[5m]))",
+          "legendFormat": "logins/s",
           "refId": "A"
         }
       ],
-      "title": "Attempts / sec",
+      "title": "Logins / sec",
       "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Successful registrations / attempts over 5m. Drop = validation or duplicate friction.",
+      "description": "Share of login attempts that succeeded (only when attempts > 0).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -77,8 +86,8 @@
             "mode": "absolute",
             "steps": [
               { "color": "red", "value": null },
-              { "color": "orange", "value": 0.7 },
-              { "color": "green", "value": 0.9 }
+              { "color": "orange", "value": 0.4 },
+              { "color": "green", "value": 0.65 }
             ]
           },
           "unit": "percentunit"
@@ -90,27 +99,23 @@
       "options": {
         "colorMode": "value",
         "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "value"
       },
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "editorMode": "code",
-          "expr": "rate(kitchensink_registrations_total{job=\"kitchensink-app\"}[5m]) / rate(kitchensink_registration_attempts_total{job=\"kitchensink-app\"}[5m])",
+          "expr": "sum(rate(kitchensink_auth_attempts_total{job=\"kitchensink-app\",outcome=\"success\"}[5m])) / sum(rate(kitchensink_auth_attempts_total{job=\"kitchensink-app\"}[5m]))",
           "legendFormat": "success",
-          "range": true,
           "refId": "A"
         }
       ],
-      "title": "Success Rate",
+      "title": "Login Success Rate",
       "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Bean-validation failures / sec (any field).",
+      "description": "Wrong password for a known email.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -131,38 +136,28 @@
       "options": {
         "colorMode": "value",
         "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "value"
       },
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "editorMode": "code",
-          "expr": "rate(kitchensink_registration_failures_total{job=\"kitchensink-app\",reason=\"validation\"}[5m])",
-          "legendFormat": "validation",
-          "range": true,
+          "expr": "sum(rate(kitchensink_auth_attempts_total{job=\"kitchensink-app\",outcome=\"bad_credentials\"}[5m]))",
+          "legendFormat": "bad_credentials",
           "refId": "A"
         }
       ],
-      "title": "Validation / sec",
+      "title": "Bad Credentials / sec",
       "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Duplicate email (409) failures / sec.",
+      "description": "Login attempts for emails that do not exist.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
           "decimals": 2,
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "text", "value": null },
-              { "color": "semi-dark-orange", "value": 0.02 }
-            ]
-          },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "text", "value": null }] },
           "unit": "ops"
         },
         "overrides": []
@@ -172,42 +167,35 @@
       "options": {
         "colorMode": "value",
         "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "value"
       },
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "editorMode": "code",
-          "expr": "rate(kitchensink_registration_failures_total{job=\"kitchensink-app\",reason=\"duplicate_email\"}[5m])",
-          "legendFormat": "duplicate",
-          "range": true,
+          "expr": "sum(rate(kitchensink_auth_attempts_total{job=\"kitchensink-app\",outcome=\"unknown_user\"}[5m]))",
+          "legendFormat": "unknown_user",
           "refId": "A"
         }
       ],
-      "title": "Duplicate Email / sec",
+      "title": "Unknown User / sec",
       "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Share of attempts that fail for any reason (1 − success rate).",
+      "description": "Currently authenticated app HTTP sessions (login в€’ logout / timeout).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
-          "decimals": 1,
-          "max": 1,
-          "min": 0,
+          "decimals": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "green", "value": null },
-              { "color": "orange", "value": 0.15 },
-              { "color": "red", "value": 0.35 }
+              { "color": "text", "value": null },
+              { "color": "green", "value": 1 }
             ]
           },
-          "unit": "percentunit"
+          "unit": "short"
         },
         "overrides": []
       },
@@ -216,39 +204,36 @@
       "options": {
         "colorMode": "value",
         "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "value"
       },
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "editorMode": "code",
-          "expr": "(1 - (rate(kitchensink_registrations_total{job=\"kitchensink-app\"}[5m]) / clamp_min(rate(kitchensink_registration_attempts_total{job=\"kitchensink-app\"}[5m]), 1e-9))) or vector(0)",
-          "legendFormat": "friction",
-          "range": true,
+          "expr": "kitchensink_active_sessions{job=\"kitchensink-app\"}",
+          "legendFormat": "active",
           "refId": "A"
         }
       ],
-      "title": "Failure Friction",
+      "title": "Active Sessions",
       "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Unexpected registration errors / sec (not validation / not duplicate).",
+      "description": "p95 login handling latency (credential check + session create).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
-          "decimals": 2,
+          "decimals": 1,
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              { "color": "text", "value": null },
-              { "color": "red", "value": 0.01 }
+              { "color": "green", "value": null },
+              { "color": "orange", "value": 0.05 },
+              { "color": "red", "value": 0.2 }
             ]
           },
-          "unit": "ops"
+          "unit": "s"
         },
         "overrides": []
       },
@@ -257,36 +242,32 @@
       "options": {
         "colorMode": "value",
         "graphMode": "area",
-        "justifyMode": "auto",
-        "orientation": "auto",
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "value"
       },
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "editorMode": "code",
-          "expr": "rate(kitchensink_registration_failures_total{job=\"kitchensink-app\",reason=\"error\"}[5m])",
-          "legendFormat": "error",
-          "range": true,
+          "expr": "histogram_quantile(0.95, sum(rate(kitchensink_auth_duration_seconds_bucket{job=\"kitchensink-app\"}[5m])) by (le))",
+          "legendFormat": "p95",
           "refId": "A"
         }
       ],
-      "title": "Other Errors / sec",
+      "title": "Login p95",
       "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Why can't the user create an account? Coarse reason rates over time.",
+      "description": "Can users log in? Outcomes over time (success vs bad_credentials vs unknown_user).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
           "custom": {
             "drawStyle": "line",
-            "fillOpacity": 15,
+            "fillOpacity": 20,
             "lineWidth": 2,
             "showPoints": "never",
-            "spanNulls": false
+            "stacking": { "group": "A", "mode": "normal" }
           },
           "unit": "ops"
         },
@@ -298,38 +279,27 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "editorMode": "code",
-          "expr": "sum by (reason) (rate(kitchensink_registration_failures_total{job=\"kitchensink-app\"}[5m]))",
-          "legendFormat": "{{reason}}",
-          "range": true,
+          "expr": "sum by (outcome) (rate(kitchensink_auth_attempts_total{job=\"kitchensink-app\"}[5m]))",
+          "legendFormat": "{{outcome}}",
           "refId": "A"
-        },
-        {
-          "editorMode": "code",
-          "expr": "rate(kitchensink_registrations_total{job=\"kitchensink-app\"}[5m])",
-          "legendFormat": "success",
-          "range": true,
-          "refId": "B"
         }
       ],
-      "title": "Success vs Failures by Reason",
+      "title": "Login Outcomes",
       "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Which form field blocks registration? (name / email / phoneNumber).",
+      "description": "Active authenticated sessions over time (app layer, not Undertow session count alone).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
           "custom": {
             "drawStyle": "line",
-            "fillOpacity": 20,
+            "fillOpacity": 15,
             "lineWidth": 2,
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": { "group": "A", "mode": "normal" }
+            "showPoints": "never"
           },
-          "unit": "ops"
+          "unit": "short"
         },
         "overrides": []
       },
@@ -339,30 +309,26 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "editorMode": "code",
-          "expr": "sum by (field) (rate(kitchensink_registration_field_failures_total{job=\"kitchensink-app\"}[5m]))",
-          "legendFormat": "{{field}}",
-          "range": true,
+          "expr": "kitchensink_active_sessions{job=\"kitchensink-app\"}",
+          "legendFormat": "active sessions",
           "refId": "A"
+        },
+        {
+          "expr": "sum(rate(kitchensink_auth_logouts_total{job=\"kitchensink-app\"}[5m]))",
+          "legendFormat": "logouts/s",
+          "refId": "B"
         }
       ],
-      "title": "Failures by Field",
+      "title": "Sessions & Logouts",
       "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Total field failures since scrape start — which field hurts users most.",
+      "description": "Outcome totals since process start.",
       "fieldConfig": {
         "defaults": {
-          "color": { "mode": "thresholds" },
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "color": "green", "value": null },
-              { "color": "orange", "value": 5 },
-              { "color": "red", "value": 20 }
-            ]
-          },
+          "color": { "mode": "palette-classic" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
           "unit": "short"
         },
         "overrides": []
@@ -371,120 +337,106 @@
       "id": 9,
       "options": {
         "displayMode": "gradient",
-        "minVizHeight": 10,
-        "minVizWidth": 0,
-        "namePlacement": "auto",
         "orientation": "horizontal",
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "showUnfilled": true,
-        "sizing": "auto"
+        "showUnfilled": true
       },
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "editorMode": "code",
-          "expr": "sum by (field) (kitchensink_registration_field_failures_total{job=\"kitchensink-app\"})",
-          "legendFormat": "{{field}}",
-          "range": true,
+          "expr": "sum by (outcome) (kitchensink_auth_attempts_total{job=\"kitchensink-app\"})",
+          "legendFormat": "{{outcome}}",
           "refId": "A"
         }
       ],
-      "title": "Field Friction (total)",
+      "title": "Outcomes (total)",
       "type": "bargauge"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Constraint annotation that failed (Pattern, Email, Size, Digits, Unique, …).",
+      "description": "Login latency avg / p95 / p99.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
           "custom": {
-            "drawStyle": "bars",
-            "fillOpacity": 60,
-            "lineWidth": 1,
-            "showPoints": "never",
-            "spanNulls": false,
-            "stacking": { "group": "A", "mode": "normal" }
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "showPoints": "never"
           },
-          "unit": "ops"
+          "unit": "s"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 16, "x": 8, "y": 12 },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 12 },
       "id": 10,
       "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "editorMode": "code",
-          "expr": "sum by (constraint) (rate(kitchensink_registration_field_failures_total{job=\"kitchensink-app\"}[5m]))",
-          "legendFormat": "{{constraint}}",
-          "range": true,
+          "expr": "sum(rate(kitchensink_auth_duration_seconds_sum{job=\"kitchensink-app\"}[5m])) / clamp_min(sum(rate(kitchensink_auth_duration_seconds_count{job=\"kitchensink-app\"}[5m])), 1e-9)",
+          "legendFormat": "avg",
           "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(kitchensink_auth_duration_seconds_bucket{job=\"kitchensink-app\"}[5m])) by (le))",
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(kitchensink_auth_duration_seconds_bucket{job=\"kitchensink-app\"}[5m])) by (le))",
+          "legendFormat": "p99",
+          "refId": "C"
         }
       ],
-      "title": "Failures by Constraint",
+      "title": "Login Duration",
       "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Field × constraint matrix — pinpoint exact validation rule firing.",
+      "description": "Logout volume vs successful logins вЂ” session turnover.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
           "custom": {
-            "align": "auto",
-            "cellOptions": { "type": "auto" },
-            "inspect": false
+            "drawStyle": "line",
+            "fillOpacity": 15,
+            "lineWidth": 2,
+            "showPoints": "never"
           },
-          "mappings": [],
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+          "unit": "ops"
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 20 },
-      "id": 12,
-      "options": {
-        "cellHeight": "sm",
-        "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false },
-        "showHeader": true,
-        "sortBy": [{ "desc": true, "displayName": "Value" }]
-      },
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 12 },
+      "id": 11,
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "editorMode": "code",
-          "expr": "topk(15, sum by (field, constraint) (kitchensink_registration_field_failures_total{job=\"kitchensink-app\"}))",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "__auto",
-          "range": false,
+          "expr": "sum(rate(kitchensink_auth_attempts_total{job=\"kitchensink-app\",outcome=\"success\"}[5m]))",
+          "legendFormat": "success/s",
           "refId": "A"
-        }
-      ],
-      "title": "Top Field × Constraint Failures",
-      "transformations": [
-        { "id": "labelsToFields", "options": {} },
+        },
         {
-          "id": "organize",
-          "options": {
-            "excludeByName": { "Time": true, "__name__": true, "job": true, "instance": true },
-            "renameByName": { "Value": "Count", "field": "Field", "constraint": "Constraint" }
-          }
+          "expr": "sum(rate(kitchensink_auth_logouts_total{job=\"kitchensink-app\"}[5m]))",
+          "legendFormat": "logout/s",
+          "refId": "B"
         }
       ],
-      "type": "table"
+      "title": "Login vs Logout",
+      "type": "timeseries"
     }
   ],
   "refresh": "10s",
   "schemaVersion": 39,
-  "tags": ["kitchensink", "registration", "validation", "business"],
+  "tags": ["grp-security", "kitchensink", "auth", "sessions", "business"],
   "templating": { "list": [] },
   "time": { "from": "now-15m", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
-  "title": "10 Registration Quality & Validation",
-  "uid": "registration-quality",
-  "version": 1,
+  "title": "12 Authentication & Sessions",
+  "uid": "auth-sessions",
+  "version": 2,
   "weekStart": ""
 }

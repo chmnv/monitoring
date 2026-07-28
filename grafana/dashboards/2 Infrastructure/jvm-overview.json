@@ -534,12 +534,12 @@
   "preload": false,
   "refresh": "30s",
   "schemaVersion": 41,
-  "tags": ["jvm", "wildfly", "overview", "sre", "memory", "gc", "threads", "classloading", "cpu", "heap", "prometheus"],
+  "tags": ["grp-infra", "jvm", "wildfly", "overview", "sre", "memory", "gc", "threads", "classloading", "cpu", "heap", "prometheus"],
   "templating": { "list": [] },
   "time": { "from": "now-1h", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
   "title": "03 JVM Overview",
   "uid": "jvm-overview",
-  "version": 4
+  "version": 5
 }

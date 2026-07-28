@@ -6,8 +6,9 @@ apiVersion: 1
 providers:
   - name: default
     orgId: 1
-    # Grafana folder where these dashboards appear in the UI.
-    folder: "00 Platform"
+    # Grafana folders are derived from the subdirectory names under `path`
+    # (see foldersFromFilesStructure below), so no fixed folder here.
+    folder: ""
     type: file
     disableDeletion: false
     updateIntervalSeconds: 10
@@ -16,4 +17,5 @@ providers:
     options:
       # Path INSIDE the container (mounted from ./grafana/dashboards).
       path: /var/lib/grafana/dashboards
-      foldersFromFilesStructure: false
+      # Map each subfolder (1 Overview & SRE, 2 Infrastructure, ...) to a Grafana folder.
+      foldersFromFilesStructure: true

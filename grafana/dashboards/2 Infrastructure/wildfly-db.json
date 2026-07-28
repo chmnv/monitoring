@@ -143,7 +143,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Application DB/JPA operations per second (persist, find, count, …).",
+      "description": "Application DB/JPA operations per second (persist, find, count, вЂ¦).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -418,12 +418,12 @@
   "preload": false,
   "refresh": "30s",
   "schemaVersion": 41,
-  "tags": ["wildfly", "database", "h2", "datasource", "query-timing", "sre", "prometheus"],
+  "tags": ["grp-infra", "wildfly", "database", "h2", "datasource", "query-timing", "sre", "prometheus"],
   "templating": { "list": [] },
   "time": { "from": "now-1h", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
   "title": "05 Database & Query Timing",
   "uid": "wildfly-db",
-  "version": 1
+  "version": 2
 }

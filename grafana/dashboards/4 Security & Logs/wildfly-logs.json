@@ -19,7 +19,7 @@
   "panels": [
     {
       "datasource": { "type": "loki", "uid": "loki" },
-      "description": "All management operations recorded by the WildFly audit log in range.",
+      "description": "Total log lines ingested from WildFly in the selected time range.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -39,41 +39,14 @@
       },
       "pluginVersion": "11.6.1",
       "targets": [
-        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "sum(count_over_time({job=\"wildfly-audit\"}[$__range]))", "queryType": "instant", "refId": "A" }
+        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "sum(count_over_time({job=\"wildfly\"}[$__range]))", "queryType": "instant", "refId": "A" }
       ],
-      "title": "Total Operations",
+      "title": "Total Lines",
       "type": "stat"
     },
     {
       "datasource": { "type": "loki", "uid": "loki" },
-      "description": "Operations performed by the admin user (real human/administrative actions, not internal in-VM calls).",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "decimals": 0,
-          "mappings": [],
-          "thresholds": { "mode": "absolute", "steps": [ { "color": "text" } ] },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
-      "id": 2,
-      "options": {
-        "colorMode": "none", "graphMode": "area", "justifyMode": "auto", "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "value"
-      },
-      "pluginVersion": "11.6.1",
-      "targets": [
-        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "sum(count_over_time({job=\"wildfly-audit\", user=\"admin\"}[$__range])) or vector(0)", "queryType": "instant", "refId": "A" }
-      ],
-      "title": "Admin Operations",
-      "type": "stat"
-    },
-    {
-      "datasource": { "type": "loki", "uid": "loki" },
-      "description": "Failed management operations (success=false). Red when > 0 — an operation was rejected/denied.",
+      "description": "ERROR-level lines in range. Red when > 0 вЂ” something needs attention.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -82,6 +55,36 @@
           "thresholds": { "mode": "absolute", "steps": [
             { "color": "semi-dark-green" },
             { "color": "semi-dark-red", "value": 1 }
+          ]},
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 4, "y": 0 },
+      "id": 2,
+      "options": {
+        "colorMode": "background_solid", "graphMode": "none", "justifyMode": "auto", "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "sum(count_over_time({job=\"wildfly\", level=\"ERROR\"}[$__range])) or vector(0)", "queryType": "instant", "refId": "A" }
+      ],
+      "title": "Errors",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "description": "WARN-level lines in range.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "decimals": 0,
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "semi-dark-green" },
+            { "color": "semi-dark-yellow", "value": 1 }
           ]},
           "unit": "short"
         },
@@ -96,23 +99,20 @@
       },
       "pluginVersion": "11.6.1",
       "targets": [
-        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "sum(count_over_time({job=\"wildfly-audit\", success=\"false\"}[$__range])) or vector(0)", "queryType": "instant", "refId": "A" }
+        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "sum(count_over_time({job=\"wildfly\", level=\"WARN\"}[$__range])) or vector(0)", "queryType": "instant", "refId": "A" }
       ],
-      "title": "Failed Operations",
+      "title": "Warnings",
       "type": "stat"
     },
     {
       "datasource": { "type": "loki", "uid": "loki" },
-      "description": "Write operations (r/o = false) — changes to the server configuration/state, as opposed to reads.",
+      "description": "INFO-level lines in range.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
           "decimals": 0,
           "mappings": [],
-          "thresholds": { "mode": "absolute", "steps": [
-            { "color": "text" },
-            { "color": "semi-dark-orange", "value": 1 }
-          ]},
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "text" } ] },
           "unit": "short"
         },
         "overrides": []
@@ -120,20 +120,20 @@
       "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
       "id": 4,
       "options": {
-        "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto",
+        "colorMode": "none", "graphMode": "area", "justifyMode": "auto", "orientation": "auto",
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "value"
       },
       "pluginVersion": "11.6.1",
       "targets": [
-        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "sum(count_over_time({job=\"wildfly-audit\"} |= `WRITE` [$__range])) or vector(0)", "queryType": "instant", "refId": "A" }
+        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "sum(count_over_time({job=\"wildfly\", level=\"INFO\"}[$__range])) or vector(0)", "queryType": "instant", "refId": "A" }
       ],
-      "title": "Write Operations",
+      "title": "Info",
       "type": "stat"
     },
     {
       "datasource": { "type": "loki", "uid": "loki" },
-      "description": "Number of distinct users seen in the audit log in range.",
+      "description": "DEBUG-level lines in range.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -147,27 +147,27 @@
       "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
       "id": 5,
       "options": {
-        "colorMode": "none", "graphMode": "none", "justifyMode": "auto", "orientation": "auto",
+        "colorMode": "none", "graphMode": "area", "justifyMode": "auto", "orientation": "auto",
         "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
         "textMode": "value"
       },
       "pluginVersion": "11.6.1",
       "targets": [
-        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "count(sum by (user) (count_over_time({job=\"wildfly-audit\"}[$__range])))", "queryType": "instant", "refId": "A" }
+        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "sum(count_over_time({job=\"wildfly\", level=\"DEBUG\"}[$__range])) or vector(0)", "queryType": "instant", "refId": "A" }
       ],
-      "title": "Distinct Users",
+      "title": "Debug",
       "type": "stat"
     },
     {
       "datasource": { "type": "loki", "uid": "loki" },
-      "description": "Live audit ingestion rate (records/sec).",
+      "description": "Live log ingestion rate (lines/sec).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
           "decimals": 2,
           "mappings": [],
           "thresholds": { "mode": "absolute", "steps": [ { "color": "text" } ] },
-          "unit": "ops"
+          "unit": "logs/s"
         },
         "overrides": []
       },
@@ -180,20 +180,20 @@
       },
       "pluginVersion": "11.6.1",
       "targets": [
-        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "sum(rate({job=\"wildfly-audit\"}[5m]))", "queryType": "instant", "refId": "A" }
+        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "sum(rate({job=\"wildfly\"}[5m]))", "queryType": "instant", "refId": "A" }
       ],
-      "title": "Audit Rate",
+      "title": "Ingest Rate",
       "type": "stat"
     },
     {
       "datasource": { "type": "loki", "uid": "loki" },
-      "description": "Management operations over time, split by access channel (NATIVE = CLI, HTTP = console/REST, IN_VM_USER = internal subsystem calls).",
+      "description": "Log volume over time, broken down by level. Bars stack so total height = total lines; a red/yellow spike flags a burst of errors/warnings.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
           "custom": {
             "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "",
-            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "bars", "fillOpacity": 70,
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "bars", "fillOpacity": 80,
             "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
             "insertNulls": false, "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 5,
             "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
@@ -202,9 +202,14 @@
           "mappings": [],
           "unit": "short"
         },
-        "overrides": []
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "ERROR" }, "properties": [ { "id": "color", "value": { "fixedColor": "semi-dark-red", "mode": "fixed" } } ] },
+          { "matcher": { "id": "byName", "options": "WARN" }, "properties": [ { "id": "color", "value": { "fixedColor": "semi-dark-yellow", "mode": "fixed" } } ] },
+          { "matcher": { "id": "byName", "options": "INFO" }, "properties": [ { "id": "color", "value": { "fixedColor": "semi-dark-green", "mode": "fixed" } } ] },
+          { "matcher": { "id": "byName", "options": "DEBUG" }, "properties": [ { "id": "color", "value": { "fixedColor": "semi-dark-blue", "mode": "fixed" } } ] }
+        ]
       },
-      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "gridPos": { "h": 8, "w": 16, "x": 0, "y": 4 },
       "id": 7,
       "options": {
         "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "bottom", "showLegend": true },
@@ -212,46 +217,14 @@
       },
       "pluginVersion": "11.6.1",
       "targets": [
-        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "sum by (access) (count_over_time({job=\"wildfly-audit\"}[$__auto]))", "legendFormat": "{{access}}", "queryType": "range", "refId": "A" }
+        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "sum by (level) (count_over_time({job=\"wildfly\"}[$__auto]))", "legendFormat": "{{level}}", "queryType": "range", "refId": "A" }
       ],
-      "title": "Operations by Access Channel",
+      "title": "Log Volume by Level",
       "type": "timeseries"
     },
     {
       "datasource": { "type": "loki", "uid": "loki" },
-      "description": "Management operations over time, split by user. Isolates real admin activity from internal (anonymous) calls.",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": {
-            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "",
-            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "bars", "fillOpacity": 70,
-            "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
-            "insertNulls": false, "lineInterpolation": "linear", "lineWidth": 1, "pointSize": 5,
-            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
-            "stacking": { "group": "A", "mode": "normal" }, "thresholdsStyle": { "mode": "off" }
-          },
-          "mappings": [],
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
-      "id": 8,
-      "options": {
-        "legend": { "calcs": ["sum"], "displayMode": "table", "placement": "bottom", "showLegend": true },
-        "tooltip": { "mode": "multi", "sort": "desc" }
-      },
-      "pluginVersion": "11.6.1",
-      "targets": [
-        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "sum by (user) (count_over_time({job=\"wildfly-audit\"}[$__auto]))", "legendFormat": "{{user}}", "queryType": "range", "refId": "A" }
-      ],
-      "title": "Operations by User",
-      "type": "timeseries"
-    },
-    {
-      "datasource": { "type": "loki", "uid": "loki" },
-      "description": "Which management operations are most frequent (operation label from Promtail).",
+      "description": "Noisiest loggers in range. Names are shortened to the simple class (last segment after the final dot) so the table stays readable.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -261,32 +234,56 @@
           "unit": "short"
         },
         "overrides": [
-          { "matcher": { "id": "byName", "options": "count" }, "properties": [ { "id": "custom.cellOptions", "value": { "mode": "gradient", "type": "gauge" } }, { "id": "custom.width", "value": 240 } ] }
+          { "matcher": { "id": "byName", "options": "logger" }, "properties": [ { "id": "custom.width", "value": 200 }, { "id": "custom.cellOptions", "value": { "type": "auto" } } ] },
+          { "matcher": { "id": "byName", "options": "lines" }, "properties": [ { "id": "custom.cellOptions", "value": { "mode": "gradient", "type": "gauge" } }, { "id": "custom.width", "value": 140 } ] }
         ]
       },
-      "gridPos": { "h": 8, "w": 8, "x": 0, "y": 12 },
-      "id": 9,
+      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 4 },
+      "id": 8,
       "options": {
         "cellHeight": "sm",
         "footer": { "countRows": false, "fields": "", "reducer": ["sum"], "show": false },
         "showHeader": true,
-        "sortBy": [ { "displayName": "count", "desc": true } ]
+        "sortBy": [ { "displayName": "lines", "desc": true } ]
       },
       "pluginVersion": "11.6.1",
       "targets": [
-        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "topk(10, sum by (operation) (count_over_time({job=\"wildfly-audit\", operation=~\".+\"}[$__range])))", "format": "table", "instant": true, "queryType": "instant", "refId": "A" }
+        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "topk(10, sum by (logger) (count_over_time({job=\"wildfly\"} | regexp `\\[(?:[\\w$]+\\.)*(?P<logger>[\\w$]+)\\]` [$__range])))", "format": "table", "instant": true, "queryType": "instant", "refId": "A" }
       ],
-      "title": "Top Management Operations",
+      "title": "Top Loggers",
       "transformations": [
-        { "id": "organize", "options": { "excludeByName": { "Time": true }, "indexByName": {}, "renameByName": { "Value #A": "count", "operation": "operation" } } }
+        { "id": "organize", "options": { "excludeByName": { "Time": true }, "indexByName": { "logger": 0, "Value #A": 1 }, "renameByName": { "Value #A": "lines", "logger": "logger" } } }
       ],
       "type": "table"
     },
     {
       "datasource": { "type": "loki", "uid": "loki" },
-      "description": "Live feed of management operations rendered as 'user · channel · operation · result'. Filter by user above. Expand a line for full label detail.",
+      "description": "Live WildFly log stream. Filter with the level dropdown or type in the query. Stack traces are joined to their originating line by Promtail.",
       "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 8, "w": 16, "x": 8, "y": 12 },
+      "gridPos": { "h": 12, "w": 24, "x": 0, "y": 12 },
+      "id": 9,
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "{job=\"wildfly\", level=~\"$level\"}", "queryType": "range", "refId": "A" }
+      ],
+      "title": "Live Logs",
+      "type": "logs"
+    },
+    {
+      "datasource": { "type": "loki", "uid": "loki" },
+      "description": "Only WARN/ERROR lines (their attached stack traces come along via Promtail multiline) вЂ” the incident view.",
+      "fieldConfig": { "defaults": {}, "overrides": [] },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 },
       "id": 10,
       "options": {
         "dedupStrategy": "none",
@@ -300,61 +297,38 @@
       },
       "pluginVersion": "11.6.1",
       "targets": [
-        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "{job=\"wildfly-audit\", user=~\"$user\"}", "queryType": "range", "refId": "A" }
+        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "{job=\"wildfly\", level=~\"WARN|ERROR\"}", "queryType": "range", "refId": "A" }
       ],
-      "title": "Audit Trail",
-      "type": "logs"
-    },
-    {
-      "datasource": { "type": "loki", "uid": "loki" },
-      "description": "Security-relevant lines from the WildFly server log: Elytron/auth events, permission denials, keystore/TLS issues.",
-      "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 20 },
-      "id": 11,
-      "options": {
-        "dedupStrategy": "none",
-        "enableLogDetails": true,
-        "prettifyLogMessage": false,
-        "showCommonLabels": false,
-        "showLabels": false,
-        "showTime": true,
-        "sortOrder": "Descending",
-        "wrapLogMessage": true
-      },
-      "pluginVersion": "11.6.1",
-      "targets": [
-        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "{job=\"wildfly\"} |~ `(?i)WFLYSEC|elytron|authentication|unauthor|denied|permission`", "queryType": "range", "refId": "A" }
-      ],
-      "title": "Security Events (server log)",
+      "title": "Warnings & Errors",
       "type": "logs"
     }
   ],
   "preload": false,
   "refresh": "30s",
   "schemaVersion": 41,
-  "tags": ["security", "audit", "loki", "wildfly", "compliance", "logql", "sre"],
+  "tags": ["grp-security", "logs", "loki", "wildfly", "logql", "sre", "observability"],
   "templating": {
     "list": [
       {
         "current": { "text": ["All"], "value": ["$__all"] },
         "datasource": { "type": "loki", "uid": "loki" },
-        "definition": "label_values({job=\"wildfly-audit\"}, user)",
+        "definition": "label_values({job=\"wildfly\"}, level)",
         "includeAll": true,
-        "label": "User",
+        "label": "Level",
         "multi": true,
-        "name": "user",
+        "name": "level",
         "options": [],
-        "query": { "label": "user", "stream": "{job=\"wildfly-audit\"}", "type": 1 },
+        "query": { "label": "level", "stream": "{job=\"wildfly\"}", "type": 1 },
         "refresh": 2,
         "sort": 1,
         "type": "query"
       }
     ]
   },
-  "time": { "from": "now-6h", "to": "now" },
+  "time": { "from": "now-1h", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
-  "title": "08 WildFly Security & Audit",
-  "uid": "wildfly-security",
+  "title": "07 WildFly Logs",
+  "uid": "wildfly-logs",
   "version": 5
 }

@@ -20,23 +20,23 @@
       "asDropdown": false,
       "icon": "dashboard",
       "keepTime": true,
-      "title": "05 DB timing",
+      "title": "12 Auth Sessions",
       "type": "link",
-      "url": "/d/wildfly-db"
+      "url": "/d/auth-sessions"
     },
     {
       "asDropdown": false,
       "icon": "dashboard",
       "keepTime": true,
-      "title": "10 Registration Quality",
+      "title": "08 WildFly Audit",
       "type": "link",
-      "url": "/d/registration-quality"
+      "url": "/d/wildfly-security"
     }
   ],
   "panels": [
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Member searches per second (all outcomes).",
+      "description": "Privileged operation attempts per second (all outcomes).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -57,17 +57,17 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "sum(rate(kitchensink_searches_total{job=\"kitchensink-app\"}[5m]))",
-          "legendFormat": "searches/s",
+          "expr": "sum(rate(kitchensink_authz_attempts_total{job=\"kitchensink-app\"}[5m]))",
+          "legendFormat": "authz/s",
           "refId": "A"
         }
       ],
-      "title": "Searches / sec",
+      "title": "Authz / sec",
       "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Share of searches that returned at least one member (excludes refine/empty).",
+      "description": "Share of privileged attempts that were allowed (when attempts > 0).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -97,17 +97,17 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "sum(rate(kitchensink_searches_total{job=\"kitchensink-app\",outcome=\"hit\"}[5m])) / sum(rate(kitchensink_searches_total{job=\"kitchensink-app\",outcome=~\"hit|zero\"}[5m]))",
-          "legendFormat": "hit rate",
+          "expr": "sum(rate(kitchensink_authz_attempts_total{job=\"kitchensink-app\",outcome=\"allowed\"}[5m])) / sum(rate(kitchensink_authz_attempts_total{job=\"kitchensink-app\"}[5m]))",
+          "legendFormat": "allowed",
           "refId": "A"
         }
       ],
-      "title": "Hit Rate (hit vs zero)",
+      "title": "Allow Rate",
       "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Valid queries with no matches — user found nothing useful.",
+      "description": "Denied privileged attempts / sec (wrong role).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -116,7 +116,7 @@
             "mode": "absolute",
             "steps": [
               { "color": "text", "value": null },
-              { "color": "orange", "value": 0.05 }
+              { "color": "orange", "value": 0.02 }
             ]
           },
           "unit": "ops"
@@ -134,17 +134,17 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "sum(rate(kitchensink_searches_total{job=\"kitchensink-app\",outcome=\"zero\"}[5m]))",
-          "legendFormat": "zero",
+          "expr": "sum(rate(kitchensink_authz_attempts_total{job=\"kitchensink-app\",outcome=\"denied\"}[5m]))",
+          "legendFormat": "denied",
           "refId": "A"
         }
       ],
-      "title": "Zero-result / sec",
+      "title": "Denied / sec",
       "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Short queries (len<=2) — exploratory / needs refine.",
+      "description": "Privileged calls with no app session.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -165,17 +165,48 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "sum(rate(kitchensink_searches_total{job=\"kitchensink-app\",outcome=\"refine\"}[5m]))",
-          "legendFormat": "refine",
+          "expr": "sum(rate(kitchensink_authz_attempts_total{job=\"kitchensink-app\",outcome=\"unauthenticated\"}[5m]))",
+          "legendFormat": "unauth",
           "refId": "A"
         }
       ],
-      "title": "Refine (short q) / sec",
+      "title": "Unauthenticated / sec",
       "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "p95 end-to-end search latency (API + DB). Not pool timing — that is dashboard 05.",
+      "description": "Accounts with role=admin.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "decimals": 0,
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "text", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+      "id": 5,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        {
+          "expr": "kitchensink_accounts_by_role{job=\"kitchensink-app\",role=\"admin\"}",
+          "legendFormat": "admins",
+          "refId": "A"
+        }
+      ],
+      "title": "Admins",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "p95 privileged op latency (all operations).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -192,8 +223,8 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
-      "id": 5,
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+      "id": 6,
       "options": {
         "colorMode": "value",
         "graphMode": "area",
@@ -203,48 +234,17 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum(rate(kitchensink_search_duration_seconds_bucket{job=\"kitchensink-app\"}[5m])) by (le))",
+          "expr": "histogram_quantile(0.95, sum(rate(kitchensink_authz_duration_seconds_bucket{job=\"kitchensink-app\"}[5m])) by (le))",
           "legendFormat": "p95",
           "refId": "A"
         }
       ],
-      "title": "Search p95",
+      "title": "Authz p95",
       "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Average number of members returned per search.",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "decimals": 1,
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "text", "value": null }] },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
-      "id": 6,
-      "options": {
-        "colorMode": "none",
-        "graphMode": "area",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "value"
-      },
-      "pluginVersion": "11.6.1",
-      "targets": [
-        {
-          "expr": "(sum(rate(kitchensink_search_results_sum{job=\"kitchensink-app\"}[5m])) / clamp_min(sum(rate(kitchensink_search_results_count{job=\"kitchensink-app\"}[5m])), 1e-9)) or vector(0)",
-          "legendFormat": "avg results",
-          "refId": "A"
-        }
-      ],
-      "title": "Avg Results / Search",
-      "type": "stat"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Does search return useful results? Outcomes over time.",
+      "description": "Are privileged actions correctly allowed or denied?",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -265,27 +265,27 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "sum by (outcome) (rate(kitchensink_searches_total{job=\"kitchensink-app\"}[5m]))",
+          "expr": "sum by (outcome) (rate(kitchensink_authz_attempts_total{job=\"kitchensink-app\"}[5m]))",
           "legendFormat": "{{outcome}}",
           "refId": "A"
         }
       ],
-      "title": "Search Outcomes",
+      "title": "Authz Outcomes",
       "type": "timeseries"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Search latency avg / p95 / p99.",
+      "description": "Allowed vs denied split by privileged operation.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
           "custom": {
             "drawStyle": "line",
-            "fillOpacity": 10,
+            "fillOpacity": 15,
             "lineWidth": 2,
             "showPoints": "never"
           },
-          "unit": "s"
+          "unit": "ops"
         },
         "overrides": []
       },
@@ -295,22 +295,12 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "sum(rate(kitchensink_search_duration_seconds_sum{job=\"kitchensink-app\"}[5m])) / clamp_min(sum(rate(kitchensink_search_duration_seconds_count{job=\"kitchensink-app\"}[5m])), 1e-9)",
-          "legendFormat": "avg",
+          "expr": "sum by (operation, outcome) (rate(kitchensink_authz_attempts_total{job=\"kitchensink-app\",outcome=~\"allowed|denied\"}[5m]))",
+          "legendFormat": "{{operation}} {{outcome}}",
           "refId": "A"
-        },
-        {
-          "expr": "histogram_quantile(0.95, sum(rate(kitchensink_search_duration_seconds_bucket{job=\"kitchensink-app\"}[5m])) by (le))",
-          "legendFormat": "p95",
-          "refId": "B"
-        },
-        {
-          "expr": "histogram_quantile(0.99, sum(rate(kitchensink_search_duration_seconds_bucket{job=\"kitchensink-app\"}[5m])) by (le))",
-          "legendFormat": "p99",
-          "refId": "C"
         }
       ],
-      "title": "Search Duration",
+      "title": "Allow / Deny by Operation",
       "type": "timeseries"
     },
     {
@@ -335,7 +325,7 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "sum by (outcome) (kitchensink_searches_total{job=\"kitchensink-app\"})",
+          "expr": "sum by (outcome) (kitchensink_authz_attempts_total{job=\"kitchensink-app\"})",
           "legendFormat": "{{outcome}}",
           "refId": "A"
         }
@@ -345,7 +335,37 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "JPA search operation timing only (dashboard 05 context).",
+      "description": "Role distribution (panel inside 15 вЂ” not a separate board).",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 12 },
+      "id": 10,
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "showUnfilled": true
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        {
+          "expr": "kitchensink_accounts_by_role{job=\"kitchensink-app\"}",
+          "legendFormat": "{{role}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Accounts by Role",
+      "type": "bargauge"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Latency by privileged operation.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -359,65 +379,30 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 12 },
-      "id": 10,
-      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
-      "pluginVersion": "11.6.1",
-      "targets": [
-        {
-          "expr": "sum(rate(kitchensink_db_operation_duration_seconds_sum{job=\"kitchensink-app\",operation=\"search\"}[5m])) / clamp_min(sum(rate(kitchensink_db_operation_duration_seconds_count{job=\"kitchensink-app\",operation=\"search\"}[5m])), 1e-9)",
-          "legendFormat": "search DB avg",
-          "refId": "A"
-        },
-        {
-          "expr": "histogram_quantile(0.95, sum(rate(kitchensink_db_operation_duration_seconds_bucket{job=\"kitchensink-app\",operation=\"search\"}[5m])) by (le))",
-          "legendFormat": "search DB p95",
-          "refId": "B"
-        }
-      ],
-      "title": "DB Op: search",
-      "type": "timeseries"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Average result-set size over time.",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "custom": {
-            "drawStyle": "line",
-            "fillOpacity": 15,
-            "lineWidth": 2,
-            "showPoints": "never"
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
       "gridPos": { "h": 8, "w": 8, "x": 16, "y": 12 },
       "id": 11,
       "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "(sum(rate(kitchensink_search_results_sum{job=\"kitchensink-app\"}[5m])) / clamp_min(sum(rate(kitchensink_search_results_count{job=\"kitchensink-app\"}[5m])), 1e-9)) or vector(0)",
-          "legendFormat": "avg size",
+          "expr": "sum by (operation) (rate(kitchensink_authz_duration_seconds_sum{job=\"kitchensink-app\"}[5m])) / clamp_min(sum by (operation) (rate(kitchensink_authz_duration_seconds_count{job=\"kitchensink-app\"}[5m])), 1e-9)",
+          "legendFormat": "{{operation}} avg",
           "refId": "A"
         }
       ],
-      "title": "Result Size (avg)",
+      "title": "Authz Duration by Op",
       "type": "timeseries"
     }
   ],
   "refresh": "10s",
   "schemaVersion": 39,
-  "tags": ["kitchensink", "search", "discovery", "business"],
+  "tags": ["grp-security", "kitchensink", "authorization", "auth", "business"],
   "templating": { "list": [] },
   "time": { "from": "now-15m", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
-  "title": "11 Search & Discovery",
-  "uid": "search-discovery",
-  "version": 1,
+  "title": "15 Authorization & Privileged Ops",
+  "uid": "app-authorization",
+  "version": 2,
   "weekStart": ""
 }

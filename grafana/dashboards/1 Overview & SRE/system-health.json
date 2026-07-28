@@ -21,7 +21,7 @@
   "panels": [
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Average scrape availability across all Prometheus jobs over the last 24 hours (platform reachability SLA — measures whether targets respond to scrapes, not app correctness).",
+      "description": "Average scrape availability across all Prometheus jobs over the last 24 hours (platform reachability SLA вЂ” measures whether targets respond to scrapes, not app correctness).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -116,7 +116,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "1 − Undertow listener/processing errors ÷ requests over 5m. Not HTTP 2xx success — app 4xx/5xx responses do not move this metric.",
+      "description": "1 в€’ Undertow listener/processing errors Г· requests over 5m. Not HTTP 2xx success вЂ” app 4xx/5xx responses do not move this metric.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -279,7 +279,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Prometheus scrape latency per job — high values warn that a target is slow or overloaded.",
+      "description": "Prometheus scrape latency per job вЂ” high values warn that a target is slow or overloaded.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -453,12 +453,12 @@
   "preload": false,
   "refresh": "30s",
   "schemaVersion": 41,
-  "tags": ["platform", "sla", "sre", "availability", "health", "slo", "burn-rate", "prometheus"],
+  "tags": ["grp-sre", "platform", "sla", "sre", "availability", "health", "slo", "burn-rate", "prometheus"],
   "templating": { "list": [] },
   "time": { "from": "now-12h", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
   "title": "09 System Health & SLA",
   "uid": "system-health",
-  "version": 2
+  "version": 3
 }
