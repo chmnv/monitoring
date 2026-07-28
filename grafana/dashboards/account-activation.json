@@ -97,7 +97,7 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "(sum(rate(kitchensink_activation_attempts_total{job=\"kitchensink-app\",outcome=\"success\"}[5m])) / sum(rate(kitchensink_activation_attempts_total{job=\"kitchensink-app\"}[5m]))) and on() (sum(rate(kitchensink_activation_attempts_total{job=\"kitchensink-app\"}[5m])) > 0)",
+          "expr": "sum(rate(kitchensink_activation_attempts_total{job=\"kitchensink-app\",outcome=\"success\"}[5m])) / sum(rate(kitchensink_activation_attempts_total{job=\"kitchensink-app\"}[5m]))",
           "legendFormat": "success",
           "refId": "A"
         }

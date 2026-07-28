@@ -22,10 +22,12 @@ Write-AnimateHeader -Title "05 Database & Query Timing" -GrafanaUrl "http://loca
 $end = Get-AnimateEndTime $DurationSec
 $n = 0
 $rest = "$BaseUrl/rest/members"
+$auth = "$BaseUrl/rest/auth"
+$admin = "$BaseUrl/rest/admin"
 
 while (Test-AnimateStillRunning $end) {
     $n++
-    $step = $n % 4
+    $step = $n % 5
     switch ($step) {
         0 {
             Write-AnimatePanel "DB Ops findAll / Pool usage" "GET /members"
@@ -44,6 +46,23 @@ while (Test-AnimateStillRunning $end) {
         3 {
             Write-AnimatePanel "DB Ops persist / Conn churn" "POST register (+activate)"
             Invoke-AnimateHttpLoad -BaseUrl $BaseUrl -IncludePost | Out-Null
+        }
+        4 {
+            Write-AnimatePanel "DB Ops findByEmail + countAll" "POST duplicate email + GET admin stats"
+            # findByEmail: duplicate email triggers MemberRepository.findByEmail() inside uniqueness validation.
+            Invoke-AnimateJson -Uri $rest -Method POST -Body @{
+                name        = "Duplicate Email"
+                email       = "jane.doe@mailinator.com"
+                phoneNumber = "2125551212"
+            } | Out-Null
+
+            # countAll: admin stats endpoint calls AdminOperations.stats() → MemberRepository.countAll().
+            $s = New-AnimateSession
+            Invoke-AnimateJson -Uri "$auth/login" -Method POST -Body @{
+                email = "john.smith@mailinator.com"
+                password = "demo"
+            } -Session $s | Out-Null
+            Invoke-AnimateJson -Uri "$admin/stats" -Session $s | Out-Null
         }
     }
     Start-Sleep -Milliseconds $DelayMs

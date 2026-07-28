@@ -15,11 +15,13 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 1,
-  "links": [],
+  "links": [
+    { "asDropdown": false, "icon": "dashboard", "keepTime": true, "title": "01 Platform Overview", "type": "link", "url": "/d/platform-overview" }
+  ],
   "panels": [
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Average scrape availability across all Prometheus jobs over the last 24 hours (platform SLA).",
+      "description": "Average scrape availability across all Prometheus jobs over the last 24 hours (platform reachability SLA — measures whether targets respond to scrapes, not app correctness).",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
@@ -114,35 +116,6 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Targets currently returning up=0.",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "decimals": 0,
-          "mappings": [],
-          "thresholds": { "mode": "absolute", "steps": [
-            { "color": "semi-dark-green" },
-            { "color": "semi-dark-red", "value": 1 }
-          ] }
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
-      "id": 4,
-      "options": {
-        "colorMode": "background_solid", "graphMode": "area", "justifyMode": "auto", "orientation": "auto",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "textMode": "value"
-      },
-      "pluginVersion": "11.6.1",
-      "targets": [
-        { "editorMode": "code", "expr": "count(up == 0) or vector(0)", "legendFormat": "down", "range": true, "refId": "A" }
-      ],
-      "title": "Targets Down",
-      "type": "stat"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "description": "1 − Undertow listener/processing errors ÷ requests over 5m. Not HTTP 2xx success — app 4xx/5xx responses do not move this metric.",
       "fieldConfig": {
         "defaults": {
@@ -158,7 +131,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
+      "gridPos": { "h": 4, "w": 4, "x": 12, "y": 0 },
       "id": 5,
       "options": {
         "colorMode": "background_solid", "graphMode": "none", "justifyMode": "auto", "orientation": "auto",
@@ -174,12 +147,13 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Lifetime registration success rate (ok / (ok + failures)).",
+      "description": "Lifetime registration success rate (ok / (ok + failures)). Shows N/A until the first registration attempt.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "thresholds" },
           "decimals": 1,
           "mappings": [],
+          "noValue": "N/A",
           "thresholds": { "mode": "absolute", "steps": [
             { "color": "semi-dark-red" },
             { "color": "semi-dark-yellow", "value": 70 },
@@ -189,7 +163,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+      "gridPos": { "h": 4, "w": 4, "x": 16, "y": 0 },
       "id": 6,
       "options": {
         "colorMode": "background_solid", "graphMode": "none", "justifyMode": "auto", "orientation": "auto",
@@ -198,9 +172,41 @@
       },
       "pluginVersion": "11.6.1",
       "targets": [
-        { "editorMode": "code", "expr": "100 * sum(kitchensink_registrations_total{job=\"kitchensink-app\"}) / clamp_min(sum(kitchensink_registrations_total{job=\"kitchensink-app\"}) + sum(kitchensink_registration_failures_total{job=\"kitchensink-app\"}), 0.0001)", "legendFormat": "app OK %", "range": true, "refId": "A" }
+        { "editorMode": "code", "expr": "100 * sum(kitchensink_registrations_total{job=\"kitchensink-app\"}) / (sum(kitchensink_registrations_total{job=\"kitchensink-app\"}) + sum(kitchensink_registration_failures_total{job=\"kitchensink-app\"}))", "legendFormat": "app OK %", "range": true, "refId": "A" }
       ],
       "title": "App Success (lifetime)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Fast-burn rate of the 99.9% app SLO over 1h. 1 = budget spent exactly on schedule; >1 = burning too fast. Based on unexpected registration errors (reason=error), NOT validation/duplicate friction.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "decimals": 2,
+          "mappings": [],
+          "noValue": "N/A",
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "semi-dark-green" },
+            { "color": "semi-dark-yellow", "value": 1 },
+            { "color": "semi-dark-red", "value": 14.4 }
+          ] },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 4, "x": 20, "y": 0 },
+      "id": 15,
+      "options": {
+        "colorMode": "background_solid", "graphMode": "none", "justifyMode": "auto", "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "(sum(rate(kitchensink_registration_failures_total{job=\"kitchensink-app\",reason=\"error\"}[1h])) / sum(rate(kitchensink_registration_attempts_total{job=\"kitchensink-app\"}[1h]))) / (1 - 0.999)", "legendFormat": "burn 1h", "range": true, "refId": "A" }
+      ],
+      "title": "SLO Burn Rate (1h)",
       "type": "stat"
     },
     {
@@ -219,7 +225,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 5, "w": 12, "x": 0, "y": 4 },
+      "gridPos": { "h": 5, "w": 24, "x": 0, "y": 4 },
       "id": 7,
       "options": {
         "colorMode": "background_solid", "graphMode": "none", "justifyMode": "auto", "orientation": "horizontal",
@@ -232,38 +238,6 @@
       ],
       "title": "Service Status",
       "type": "stat"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "24h availability per scrape job.",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "thresholds" },
-          "decimals": 2,
-          "max": 100,
-          "min": 95,
-          "thresholds": { "mode": "absolute", "steps": [
-            { "color": "semi-dark-red" },
-            { "color": "semi-dark-yellow", "value": 99 },
-            { "color": "semi-dark-green", "value": 99.9 }
-          ] },
-          "unit": "percent"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 5, "w": 12, "x": 12, "y": 4 },
-      "id": 8,
-      "options": {
-        "displayMode": "gradient", "minVizHeight": 10, "minVizWidth": 0, "namePlacement": "auto",
-        "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "showUnfilled": true, "sizing": "auto", "valueMode": "color"
-      },
-      "pluginVersion": "11.6.1",
-      "targets": [
-        { "editorMode": "code", "exemplar": false, "expr": "100 * avg by (job) (avg_over_time(up[24h]))", "instant": true, "legendFormat": "{{job}}", "range": false, "refId": "A" }
-      ],
-      "title": "Availability by Service (24h)",
-      "type": "bargauge"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
@@ -407,7 +381,7 @@
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Host resource pressure — CPU busy, RAM used, disk C: used.",
+      "description": "Multi-window error-budget burn rate for the 99.9% app SLO. Google SRE fast/slow-burn: fast (1h) line crossing 14.4 or slow (6h) crossing 6 means page. Tracks unexpected registration errors (reason=error), not user validation friction.",
       "fieldConfig": {
         "defaults": {
           "color": { "mode": "palette-classic" },
@@ -419,13 +393,12 @@
             "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
             "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "line" }
           },
-          "max": 100,
-          "min": 0,
           "thresholds": { "mode": "absolute", "steps": [
             { "color": "transparent" },
-            { "color": "semi-dark-yellow", "value": 85 }
+            { "color": "semi-dark-yellow", "value": 1 },
+            { "color": "semi-dark-red", "value": 14.4 }
           ] },
-          "unit": "percent"
+          "unit": "none"
         },
         "overrides": []
       },
@@ -437,11 +410,10 @@
       },
       "pluginVersion": "11.6.1",
       "targets": [
-        { "editorMode": "code", "expr": "100 - (avg(rate(windows_cpu_time_total{mode=\"idle\"}[5m])) * 100)", "legendFormat": "CPU", "range": true, "refId": "A" },
-        { "editorMode": "code", "expr": "(1 - windows_memory_available_bytes / windows_memory_physical_total_bytes) * 100", "legendFormat": "RAM", "range": true, "refId": "B" },
-        { "editorMode": "code", "expr": "100 * (1 - windows_logical_disk_free_bytes{volume=\"C:\"} / windows_logical_disk_size_bytes{volume=\"C:\"})", "legendFormat": "Disk C:", "range": true, "refId": "C" }
+        { "editorMode": "code", "expr": "(sum(rate(kitchensink_registration_failures_total{job=\"kitchensink-app\",reason=\"error\"}[1h])) / clamp_min(sum(rate(kitchensink_registration_attempts_total{job=\"kitchensink-app\"}[1h])), 1e-9)) / (1 - 0.999)", "legendFormat": "fast burn (1h)", "range": true, "refId": "A" },
+        { "editorMode": "code", "expr": "(sum(rate(kitchensink_registration_failures_total{job=\"kitchensink-app\",reason=\"error\"}[6h])) / clamp_min(sum(rate(kitchensink_registration_attempts_total{job=\"kitchensink-app\"}[6h])), 1e-9)) / (1 - 0.999)", "legendFormat": "slow burn (6h)", "range": true, "refId": "B" }
       ],
-      "title": "Host Resource Pressure",
+      "title": "Error Budget Burn Rate (99.9% SLO)",
       "type": "timeseries"
     },
     {
@@ -481,12 +453,12 @@
   "preload": false,
   "refresh": "30s",
   "schemaVersion": 41,
-  "tags": ["platform", "sla", "sre", "availability", "health", "prometheus"],
+  "tags": ["platform", "sla", "sre", "availability", "health", "slo", "burn-rate", "prometheus"],
   "templating": { "list": [] },
   "time": { "from": "now-12h", "to": "now" },
   "timepicker": {},
   "timezone": "browser",
   "title": "09 System Health & SLA",
   "uid": "system-health",
-  "version": 1
+  "version": 2
 }

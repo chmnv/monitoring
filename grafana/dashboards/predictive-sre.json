@@ -1,0 +1,344 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": { "type": "grafana", "uid": "-- Grafana --" },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [
+    { "asDropdown": false, "icon": "dashboard", "keepTime": true, "title": "09 System Health & SLA", "type": "link", "url": "/d/system-health" },
+    { "asDropdown": false, "icon": "dashboard", "keepTime": true, "title": "03 JVM Overview", "type": "link", "url": "/d/jvm-overview" }
+  ],
+  "panels": [
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Predicted time until the JVM heap is exhausted at the current growth rate (free heap ÷ heap growth/s over the last 30m). Very large / N/A = heap is flat or shrinking (healthy sawtooth). Uses deriv() for linear extrapolation.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "decimals": 1,
+          "mappings": [],
+          "noValue": "safe (flat)",
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "semi-dark-red" },
+            { "color": "semi-dark-yellow", "value": 14400 },
+            { "color": "semi-dark-green", "value": 86400 }
+          ] },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 },
+      "id": 1,
+      "options": {
+        "colorMode": "background_solid", "graphMode": "none", "justifyMode": "auto", "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "(base_memory_maxHeap_bytes{job=\"wildfly-management\"} - base_memory_usedHeap_bytes{job=\"wildfly-management\"}) / clamp_min(deriv(base_memory_usedHeap_bytes{job=\"wildfly-management\"}[30m]), 1)", "legendFormat": "time to OOM", "range": true, "refId": "A" }
+      ],
+      "title": "Time to Heap Exhaustion",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Predicted time until disk C: is full at the current fill rate (free bytes ÷ shrink/s over the last 1h). Very large / N/A = disk is stable or freeing up.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "decimals": 1,
+          "mappings": [],
+          "noValue": "safe (stable)",
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "semi-dark-red" },
+            { "color": "semi-dark-yellow", "value": 86400 },
+            { "color": "semi-dark-green", "value": 604800 }
+          ] },
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 },
+      "id": 2,
+      "options": {
+        "colorMode": "background_solid", "graphMode": "none", "justifyMode": "auto", "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "windows_logical_disk_free_bytes{volume=\"C:\"} / clamp_min(-deriv(windows_logical_disk_free_bytes{volume=\"C:\"}[1h]), 1)", "legendFormat": "time to full", "range": true, "refId": "A" }
+      ],
+      "title": "Time to Disk Full (C:)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Live anomaly score for HTTP traffic: how many standard deviations the current request rate is from its own 1h rolling mean. |z| > 3 = statistically unusual (spike or drop). Self-baselining — no fixed threshold needed.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "decimals": 2,
+          "mappings": [],
+          "noValue": "N/A",
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "semi-dark-green" },
+            { "color": "semi-dark-yellow", "value": 2 },
+            { "color": "semi-dark-red", "value": 3 }
+          ] },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 },
+      "id": 3,
+      "options": {
+        "colorMode": "background_solid", "graphMode": "none", "justifyMode": "auto", "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "abs(sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])) - avg_over_time(sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m]))[1h:1m])) / clamp_min(stddev_over_time(sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m]))[1h:1m]), 0.001)", "legendFormat": "|z|", "range": true, "refId": "A" }
+      ],
+      "title": "Traffic Anomaly (|z-score|)",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Failed login attempts per second (bad credentials + unknown user). A sudden climb here is the classic brute-force / credential-stuffing signature.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "decimals": 2,
+          "mappings": [],
+          "noValue": "0",
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "semi-dark-green" },
+            { "color": "semi-dark-yellow", "value": 1 },
+            { "color": "semi-dark-red", "value": 5 }
+          ] },
+          "unit": "ops"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 },
+      "id": 4,
+      "options": {
+        "colorMode": "background_solid", "graphMode": "area", "justifyMode": "auto", "orientation": "auto",
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "textMode": "value"
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "sum(rate(kitchensink_auth_attempts_total{job=\"kitchensink-app\",outcome=~\"bad_credentials|unknown_user\"}[5m]))", "legendFormat": "failed logins/s", "range": true, "refId": "A" }
+      ],
+      "title": "Brute-Force Signal",
+      "type": "stat"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Linear forecast of JVM heap usage 4h ahead (predict_linear over a 1h window). When the dashed forecast line crosses 'Heap max', that is the predicted OOM time — capacity planning before it hurts.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10,
+            "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "decbytes"
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "heap forecast (+4h)" }, "properties": [ { "id": "custom.lineStyle", "value": { "dash": [10, 10], "fill": "dash" } }, { "id": "color", "value": { "fixedColor": "semi-dark-orange", "mode": "fixed" } } ] },
+          { "matcher": { "id": "byName", "options": "heap max" }, "properties": [ { "id": "color", "value": { "fixedColor": "semi-dark-red", "mode": "fixed" } }, { "id": "custom.fillOpacity", "value": 0 } ] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "id": 5,
+      "options": {
+        "legend": { "calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "base_memory_usedHeap_bytes{job=\"wildfly-management\"}", "legendFormat": "heap used", "range": true, "refId": "A" },
+        { "editorMode": "code", "expr": "predict_linear(base_memory_usedHeap_bytes{job=\"wildfly-management\"}[1h], 4*3600)", "legendFormat": "heap forecast (+4h)", "range": true, "refId": "B" },
+        { "editorMode": "code", "expr": "base_memory_maxHeap_bytes{job=\"wildfly-management\"}", "legendFormat": "heap max", "range": true, "refId": "C" }
+      ],
+      "title": "Heap Forecast (predict_linear +4h)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "HTTP request-rate anomaly score over time (deviation from 1h rolling mean, in σ). Red band beyond ±3σ marks statistically significant spikes/drops without any hand-tuned threshold.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": true, "axisColorMode": "text", "axisLabel": "",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10,
+            "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "line" }
+          },
+          "mappings": [],
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "transparent" },
+            { "color": "semi-dark-red", "value": 3 }
+          ] },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "id": 6,
+      "options": {
+        "legend": { "calcs": ["min", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "(sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m])) - avg_over_time(sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m]))[1h:1m])) / clamp_min(stddev_over_time(sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",server=\"default-server\"}[5m]))[1h:1m]), 0.001)", "legendFormat": "z-score", "range": true, "refId": "A" }
+      ],
+      "title": "Traffic Anomaly Detection (z-score)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Distribution of registration request latency over time (Prometheus histogram buckets rendered as a heatmap). Reveals multi-modal latency and slow-tail drift that a single p95 line hides.",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "scaleDistribution": { "type": "linear" }
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "id": 7,
+      "options": {
+        "calculate": false,
+        "cellGap": 1,
+        "cellValues": { "unit": "short" },
+        "color": {
+          "exponent": 0.5, "fill": "dark-orange", "mode": "scheme", "reverse": false,
+          "scale": "exponential", "scheme": "Spectral", "steps": 64
+        },
+        "exemplars": { "color": "rgba(255,0,255,0.7)" },
+        "filterValues": { "le": 1e-9 },
+        "legend": { "show": true },
+        "rowsFrame": { "layout": "auto" },
+        "tooltip": { "mode": "single", "show": true, "yHistogram": false },
+        "yAxis": { "axisPlacement": "left", "reverse": false, "unit": "s" }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "exemplar": false, "expr": "sum(rate(kitchensink_registration_duration_seconds_bucket{job=\"kitchensink-app\"}[5m])) by (le)", "format": "heatmap", "legendFormat": "{{le}}", "range": true, "refId": "A" }
+      ],
+      "title": "Registration Latency Heatmap",
+      "type": "heatmap"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Login outcome mix over time. A rising red 'failed logins/s' with flat success is the fingerprint of a brute-force / credential-stuffing attack; enrichment (per-user) lives on dashboard 12.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "",
+            "axisPlacement": "auto", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 20,
+            "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "ops"
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "failed logins/s" }, "properties": [ { "id": "color", "value": { "fixedColor": "semi-dark-red", "mode": "fixed" } } ] },
+          { "matcher": { "id": "byName", "options": "successful logins/s" }, "properties": [ { "id": "color", "value": { "fixedColor": "semi-dark-green", "mode": "fixed" } } ] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "id": 8,
+      "options": {
+        "legend": { "calcs": ["lastNotNull", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "sum(rate(kitchensink_auth_attempts_total{job=\"kitchensink-app\",outcome=~\"bad_credentials|unknown_user\"}[5m]))", "legendFormat": "failed logins/s", "range": true, "refId": "A" },
+        { "editorMode": "code", "expr": "sum(rate(kitchensink_auth_attempts_total{job=\"kitchensink-app\",outcome=\"success\"}[5m]))", "legendFormat": "successful logins/s", "range": true, "refId": "B" }
+      ],
+      "title": "Brute-Force / Credential-Stuffing Watch",
+      "type": "timeseries"
+    },
+    {
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "description": "Metric correlation view: app request latency and DB p95 (left axis) overlaid with JVM GC time rate (right axis). When latency spikes line up with GC time, the bottleneck is the JVM, not the database — this is how you tell root cause apart at a glance.",
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisBorderShow": false, "axisCenteredZero": false, "axisColorMode": "text", "axisLabel": "",
+            "axisPlacement": "left", "barAlignment": 0, "drawStyle": "line", "fillOpacity": 10,
+            "gradientMode": "none", "hideFrom": { "legend": false, "tooltip": false, "viz": false },
+            "insertNulls": false, "lineInterpolation": "smooth", "lineWidth": 2, "pointSize": 5,
+            "scaleDistribution": { "type": "linear" }, "showPoints": "never", "spanNulls": false,
+            "stacking": { "group": "A", "mode": "none" }, "thresholdsStyle": { "mode": "off" }
+          },
+          "mappings": [],
+          "unit": "s"
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "GC time rate (s/s)" }, "properties": [ { "id": "custom.axisPlacement", "value": "right" }, { "id": "unit", "value": "s" }, { "id": "color", "value": { "fixedColor": "semi-dark-purple", "mode": "fixed" } } ] }
+        ]
+      },
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 20 },
+      "id": 9,
+      "options": {
+        "legend": { "calcs": ["mean", "max"], "displayMode": "table", "placement": "bottom", "showLegend": true },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "pluginVersion": "11.6.1",
+      "targets": [
+        { "editorMode": "code", "expr": "sum(rate(wildfly_undertow_total_request_time_total_seconds{job=\"wildfly-management\",deployment=\"kitchensink.war\"}[5m])) / clamp_min(sum(rate(wildfly_undertow_request_count_total{job=\"wildfly-management\",deployment=\"kitchensink.war\"}[5m])), 0.0001)", "legendFormat": "app avg latency", "range": true, "refId": "A" },
+        { "editorMode": "code", "expr": "histogram_quantile(0.95, sum(rate(kitchensink_db_operation_duration_seconds_bucket{job=\"kitchensink-app\"}[5m])) by (le))", "legendFormat": "DB op p95", "range": true, "refId": "B" },
+        { "editorMode": "code", "expr": "sum(rate(base_gc_time_total_seconds{job=\"wildfly-management\"}[5m]))", "legendFormat": "GC time rate (s/s)", "range": true, "refId": "C" }
+      ],
+      "title": "Latency ↔ GC Correlation (root-cause overlay)",
+      "type": "timeseries"
+    }
+  ],
+  "preload": false,
+  "refresh": "30s",
+  "schemaVersion": 41,
+  "tags": ["sre", "predictive", "slo", "capacity", "anomaly", "forecast", "security", "prometheus"],
+  "templating": { "list": [] },
+  "time": { "from": "now-3h", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "16 Predictive & SRE Insights",
+  "uid": "predictive-sre",
+  "version": 1
+}

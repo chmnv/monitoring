@@ -97,7 +97,7 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "(sum(rate(kitchensink_searches_total{job=\"kitchensink-app\",outcome=\"hit\"}[5m])) / sum(rate(kitchensink_searches_total{job=\"kitchensink-app\",outcome=~\"hit|zero\"}[5m]))) and on() (sum(rate(kitchensink_searches_total{job=\"kitchensink-app\",outcome=~\"hit|zero\"}[5m])) > 0)",
+          "expr": "sum(rate(kitchensink_searches_total{job=\"kitchensink-app\",outcome=\"hit\"}[5m])) / sum(rate(kitchensink_searches_total{job=\"kitchensink-app\",outcome=~\"hit|zero\"}[5m]))",
           "legendFormat": "hit rate",
           "refId": "A"
         }
@@ -234,7 +234,7 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "(sum(rate(kitchensink_search_results_sum{job=\"kitchensink-app\"}[5m])) / sum(rate(kitchensink_search_results_count{job=\"kitchensink-app\"}[5m]))) and on() (sum(rate(kitchensink_search_results_count{job=\"kitchensink-app\"}[5m])) > 0)",
+          "expr": "(sum(rate(kitchensink_search_results_sum{job=\"kitchensink-app\"}[5m])) / clamp_min(sum(rate(kitchensink_search_results_count{job=\"kitchensink-app\"}[5m])), 1e-9)) or vector(0)",
           "legendFormat": "avg results",
           "refId": "A"
         }
@@ -400,7 +400,7 @@
       "pluginVersion": "11.6.1",
       "targets": [
         {
-          "expr": "(sum(rate(kitchensink_search_results_sum{job=\"kitchensink-app\"}[5m])) / sum(rate(kitchensink_search_results_count{job=\"kitchensink-app\"}[5m]))) and on() (sum(rate(kitchensink_search_results_count{job=\"kitchensink-app\"}[5m])) > 0)",
+          "expr": "(sum(rate(kitchensink_search_results_sum{job=\"kitchensink-app\"}[5m])) / clamp_min(sum(rate(kitchensink_search_results_count{job=\"kitchensink-app\"}[5m])), 1e-9)) or vector(0)",
           "legendFormat": "avg size",
           "refId": "A"
         }

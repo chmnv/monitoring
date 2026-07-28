@@ -99,7 +99,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "(rate(kitchensink_registrations_total{job=\"kitchensink-app\"}[5m]) / rate(kitchensink_registration_attempts_total{job=\"kitchensink-app\"}[5m])) and on() (rate(kitchensink_registration_attempts_total{job=\"kitchensink-app\"}[5m]) > 0)",
+          "expr": "rate(kitchensink_registrations_total{job=\"kitchensink-app\"}[5m]) / rate(kitchensink_registration_attempts_total{job=\"kitchensink-app\"}[5m])",
           "legendFormat": "success",
           "range": true,
           "refId": "A"
@@ -225,7 +225,7 @@
       "targets": [
         {
           "editorMode": "code",
-          "expr": "(1 - (rate(kitchensink_registrations_total{job=\"kitchensink-app\"}[5m]) / rate(kitchensink_registration_attempts_total{job=\"kitchensink-app\"}[5m]))) and on() (rate(kitchensink_registration_attempts_total{job=\"kitchensink-app\"}[5m]) > 0)",
+          "expr": "(1 - (rate(kitchensink_registrations_total{job=\"kitchensink-app\"}[5m]) / clamp_min(rate(kitchensink_registration_attempts_total{job=\"kitchensink-app\"}[5m]), 1e-9))) or vector(0)",
           "legendFormat": "friction",
           "range": true,
           "refId": "A"
@@ -410,7 +410,7 @@
         },
         "overrides": []
       },
-      "gridPos": { "h": 8, "w": 8, "x": 8, "y": 12 },
+      "gridPos": { "h": 8, "w": 16, "x": 8, "y": 12 },
       "id": 10,
       "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
       "pluginVersion": "11.6.1",
@@ -425,42 +425,6 @@
       ],
       "title": "Failures by Constraint",
       "type": "timeseries"
-    },
-    {
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
-      "description": "Coarse reason totals — same series as dashboard 06, kept here for context.",
-      "fieldConfig": {
-        "defaults": {
-          "color": { "mode": "palette-classic" },
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": { "h": 8, "w": 8, "x": 16, "y": 12 },
-      "id": 11,
-      "options": {
-        "displayMode": "lcd",
-        "minVizHeight": 10,
-        "minVizWidth": 0,
-        "namePlacement": "auto",
-        "orientation": "horizontal",
-        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
-        "showUnfilled": true,
-        "sizing": "auto"
-      },
-      "pluginVersion": "11.6.1",
-      "targets": [
-        {
-          "editorMode": "code",
-          "expr": "sum by (reason) (kitchensink_registration_failures_total{job=\"kitchensink-app\"})",
-          "legendFormat": "{{reason}}",
-          "range": true,
-          "refId": "A"
-        }
-      ],
-      "title": "Failures by Reason (total)",
-      "type": "bargauge"
     },
     {
       "datasource": { "type": "prometheus", "uid": "prometheus" },

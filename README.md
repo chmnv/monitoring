@@ -93,18 +93,19 @@ The WAR is **never** committed — it is always built from `./kitchensink` durin
 | 01 | Platform Overview | `afsypu2byt8u8b` | Single pane of glass + drill-downs |
 | 02 | Windows Host | `windows-host` | CPU / RAM / disk / network |
 | 03 | JVM Overview | `jvm-overview` | Heap, GC, threads, classes |
-| 04 | WildFly HTTP & Datasources | `wildfly-http-db` | Undertow RED + datasource pool |
-| 05 | Database & Query Timing | `wildfly-db` | ExampleDS pool + app DB ops |
+| 04 | WildFly HTTP & Datasources | `wildfly-http-db` | Undertow RED + datasource pool summary |
+| 05 | Database & Query Timing | `wildfly-db` | ExampleDS pool deep-dive + app DB ops |
 | 06 | Application - Kitchensink Business | `kitchensink-app` | Registrations, failures, duration |
 | 07 | WildFly Logs | `wildfly-logs` | Log volume, levels, live stream |
 | 08 | WildFly Security & Audit | `wildfly-security` | Management audit trail |
-| 09 | System Health & SLA | `system-health` | SLA, error budget, SLOs |
+| 09 | System Health & SLA | `system-health` | SLA, error budget, SLOs + burn rate |
 | 10 | Registration Quality & Validation | `registration-quality` | Field/constraint friction (deep dive) |
 | 11 | Search & Discovery | `search-discovery` | Hit / zero / refine search quality |
 | 12 | Authentication & Sessions | `auth-sessions` | App login outcomes + active sessions |
 | 13 | Account Activation | `account-activation` | Pending → token → activated funnel |
 | 14 | Account Recovery | `account-recovery` | Reset tokens + post-reset login |
 | 15 | Authorization & Privileged Ops | `app-authorization` | Allow/deny by app role (≠ WildFly audit) |
+| 16 | Predictive & SRE Insights | `predictive-sre` | Exhaustion forecast, latency heatmap, anomaly z-score, brute-force, latency↔GC correlation |
 
 Target for mentor deliverable: **15** (see private notes / roadmap). Current live set: **15**.
 
@@ -281,6 +282,7 @@ docker start wildfly
 | 13 | `scripts/animate/13-account-activation.ps1` | `/d/account-activation` |
 | 14 | `scripts/animate/14-account-recovery.ps1` | `/d/account-recovery` |
 | 15 | `scripts/animate/15-app-authorization.ps1` | `/d/app-authorization` |
+| 16 | _(no dedicated script — populated by 04/06/12 load via `animate-all.ps1`)_ | `/d/predictive-sre` |
 
 ## Status / roadmap
 
