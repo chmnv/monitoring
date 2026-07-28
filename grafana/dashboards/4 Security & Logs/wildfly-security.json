@@ -306,13 +306,25 @@
       "type": "logs"
     },
     {
-      "datasource": { "type": "loki", "uid": "loki" },
-      "description": "Security-relevant lines from the WildFly server log: Elytron/auth events, permission denials, keystore/TLS issues.",
-      "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 20 },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "description": "Security-relevant lines from the WildFly server log: authentication failures, authorization denials and permission errors.",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 20
+      },
       "id": 11,
       "options": {
-        "dedupStrategy": "none",
+        "dedupStrategy": "signature",
+        "enableInfiniteScrolling": false,
         "enableLogDetails": true,
         "prettifyLogMessage": false,
         "showCommonLabels": false,
@@ -322,8 +334,20 @@
         "wrapLogMessage": true
       },
       "pluginVersion": "11.6.1",
+      "timeFrom": "1h",
       "targets": [
-        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "{job=\"wildfly\"} |~ `(?i)WFLYSEC|elytron|authentication|unauthor|denied|permission`", "queryType": "range", "refId": "A" }
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "{job=\"wildfly\"} |~ `(?i)(elytron|authentication|unauthor|denied|permission)`",
+          "maxLines": 200,
+          "queryType": "range",
+          "refId": "A"
+        }
       ],
       "title": "Security Events (server log)",
       "type": "logs"
