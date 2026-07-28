@@ -280,13 +280,25 @@
       "type": "logs"
     },
     {
-      "datasource": { "type": "loki", "uid": "loki" },
-      "description": "Only WARN/ERROR lines (their attached stack traces come along via Promtail multiline) — the incident view.",
-      "fieldConfig": { "defaults": {}, "overrides": [] },
-      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 },
+      "datasource": {
+        "type": "loki",
+        "uid": "loki"
+      },
+      "description": "WARN, ERROR and FATAL lines from the WildFly server log.",
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 24
+      },
       "id": 10,
       "options": {
-        "dedupStrategy": "none",
+        "dedupStrategy": "signature",
+        "enableInfiniteScrolling": false,
         "enableLogDetails": true,
         "prettifyLogMessage": false,
         "showCommonLabels": false,
@@ -296,8 +308,20 @@
         "wrapLogMessage": true
       },
       "pluginVersion": "11.6.1",
+      "timeFrom": "1h",
       "targets": [
-        { "datasource": { "type": "loki", "uid": "loki" }, "editorMode": "code", "expr": "{job=\"wildfly\", level=~\"WARN|ERROR\"}", "queryType": "range", "refId": "A" }
+        {
+          "datasource": {
+            "type": "loki",
+            "uid": "loki"
+          },
+          "direction": "backward",
+          "editorMode": "code",
+          "expr": "{job=\"wildfly\"} |~ `(?i)(warn|error|fatal)`",
+          "maxLines": 100,
+          "queryType": "range",
+          "refId": "A"
+        }
       ],
       "title": "Warnings & Errors",
       "type": "logs"
