@@ -107,7 +107,7 @@ The WAR is **never** committed — it is always built from `./kitchensink` durin
 | 15 | Authorization & Privileged Ops | `app-authorization` | Allow/deny by app role (≠ WildFly audit) |
 | 16 | Predictive & SRE Insights | `predictive-sre` | Exhaustion forecast, latency heatmap, anomaly z-score, brute-force, latency↔GC correlation |
 
-Target for mentor deliverable: **15** (see private notes / roadmap). Current live set: **15**.
+Current live set: **16** (15 domain dashboards + Predictive & SRE Insights).
 
 ## Application / business metrics
 
@@ -289,7 +289,7 @@ docker start wildfly
 - [x] WildFly image (multi-stage, JMX Exporter, management, audit log)
 - [x] kitchensink vendored in-repo + business metrics endpoint
 - [x] Prometheus (JMX + native `:9990` + kitchensink-app + windows)
-- [x] Grafana datasources + dashboards-as-code (01–15)
+- [x] Grafana datasources + dashboards-as-code (01–16)
 - [x] Per-dashboard animate scripts (`scripts/animate/`, `animate-all.ps1`)
 - [x] Loki + Promtail (server.log + audit-log)
 - [x] Email alerts (Gmail SMTP, rules as code)
